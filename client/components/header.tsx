@@ -1,15 +1,24 @@
 "use client"
 
 import Link from "next/link"
-import { Calculator, Newspaper, TrendingUp, Menu, Moon, Sun, Calendar, User } from "lucide-react"
+import { Calculator, Newspaper, TrendingUp, Menu, Moon, Sun, Calendar, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react"
+import { useAuth } from "@/contexts/auth-context"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const { user, isAuthenticated, logout, loading } = useAuth()
 
   const navigation = [
     { name: "Araçlar", href: "/araclar", icon: Calculator },
@@ -87,16 +96,45 @@ export function Header() {
             <span className="sr-only">Tema Değiştir</span>
           </Button>
 
-          <Button asChild variant="ghost" className="hidden md:flex">
-            <Link href="/giris">Giriş Yap</Link>
-          </Button>
-
-          <Button asChild className="hidden md:flex">
-            <Link href="/profil">
-              <User className="mr-2 h-4 w-4" />
-              Profil
-            </Link>
-          </Button>
+          {!loading && (
+            <>
+              {!isAuthenticated ? (
+                <Button asChild variant="ghost" className="hidden md:flex">
+                  <Link href="/giris">Giriş Yap</Link>
+                </Button>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="hidden md:flex">
+                      <User className="mr-2 h-4 w-4" />
+                      {user?.name || user?.email}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href="/profil" className="flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        Profil
+                      </Link>
+                    </DropdownMenuItem>
+                    {user?.role === 'ADMIN' && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="flex items-center">
+                          <User className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} className="text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Çıkış Yap
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </>
+          )}
 
           {/* Mobile Menu */}
           <Sheet>
@@ -160,16 +198,33 @@ export function Header() {
                     <span className="ml-6">{theme === "dark" ? "Açık Tema" : "Koyu Tema"}</span>
                   </Button>
 
-                  <Button asChild variant="outline" className="w-full bg-transparent">
-                    <Link href="/giris">Giriş Yap</Link>
-                  </Button>
-
-                  <Button asChild className="w-full">
-                    <Link href="/profil">
-                      <User className="mr-2 h-4 w-4" />
-                      Profil
-                    </Link>
-                  </Button>
+                  {!isAuthenticated ? (
+                    <Button asChild variant="outline" className="w-full bg-transparent">
+                      <Link href="/giris">Giriş Yap</Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button asChild className="w-full">
+                        <Link href="/profil">
+                          <User className="mr-2 h-4 w-4" />
+                          Profil
+                        </Link>
+                      </Button>
+                      {user?.role === 'ADMIN' && (
+                        <Button asChild variant="outline" className="w-full bg-transparent">
+                          <Link href="/admin">Admin Panel</Link>
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        className="w-full bg-transparent text-red-600"
+                        onClick={logout}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Çıkış Yap
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>

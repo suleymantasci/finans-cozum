@@ -9,30 +9,40 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
+import { toast } from "sonner"
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     terms: false,
   })
-  const router = useRouter()
+  const { register } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Simulated registration - replace with actual authentication
-    setTimeout(() => {
-      console.log("[v0] Registration attempt:", formData.email)
+    try {
+      await register({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+      })
+      toast.success('Kayıt başarılı!')
+    } catch (err: any) {
+      setError(err.message || 'Kayıt olurken bir hata oluştu')
+      toast.error(err.message || 'Kayıt olurken bir hata oluştu')
+    } finally {
       setIsLoading(false)
-      router.push("/")
-    }, 1500)
+    }
   }
 
   return (
@@ -113,6 +123,12 @@ export function RegisterForm() {
               'nı kabul ediyorum
             </label>
           </div>
+
+          {error && (
+            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+              {error}
+            </div>
+          )}
 
           <Button type="submit" className="w-full" disabled={isLoading || !formData.terms}>
             {isLoading ? (

@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
+import { RequireAuth } from "@/components/auth/require-auth"
+import { useAuth } from "@/contexts/auth-context"
 
-export default function ProfilPage() {
+function ProfilPageContent() {
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState({
     name: "Ahmet Yılmaz",
@@ -622,5 +624,13 @@ export default function ProfilPage() {
         </div>
       </section>
     </div>
+  )
+}
+
+export default function ProfilPage() {
+  return (
+    <RequireAuth>
+      <ProfilPageContent />
+    </RequireAuth>
   )
 }

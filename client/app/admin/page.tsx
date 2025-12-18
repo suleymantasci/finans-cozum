@@ -1,13 +1,10 @@
-import type { Metadata } from "next"
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart3, FileText, Calendar, Users, TrendingUp, Plus } from "lucide-react"
-
-export const metadata: Metadata = {
-  title: "Admin Panel | Finanscözüm",
-  description: "Yönetim paneli",
-}
+import { RequireAuth } from "@/components/auth/require-auth"
 
 const stats = [
   {
@@ -64,7 +61,7 @@ const recentNews = [
   },
 ]
 
-export default function AdminDashboardPage() {
+function AdminDashboardPageContent() {
   return (
     <div className="min-h-screen bg-(--color-background)">
       <div className="border-b bg-(--color-card)">
@@ -176,5 +173,13 @@ export default function AdminDashboardPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <RequireAuth requireAdmin>
+      <AdminDashboardPageContent />
+    </RequireAuth>
   )
 }
