@@ -52,8 +52,9 @@ const relatedTools = [
   },
 ]
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const article = newsArticles.find((a) => a.id === Number.parseInt(params.id))
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const article = newsArticles.find((a) => a.id === Number.parseInt(id))
 
   if (!article) {
     return {
@@ -73,8 +74,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default function NewsDetailPage({ params }: { params: { id: string } }) {
-  const article = newsArticles.find((a) => a.id === Number.parseInt(params.id))
+export default async function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
+  const article = newsArticles.find((a) => a.id === Number.parseInt(id))
 
   if (!article) {
     return (
