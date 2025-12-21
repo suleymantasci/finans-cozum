@@ -1,26 +1,85 @@
 "use client"
 
+import { useEffect, useState, useRef, use } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Upload, Save, Eye, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { ArrowLeft, Upload, Save, Eye, Trash2, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { newsApi, News, NewsStatus } from "@/lib/news-api"
+import { categoriesApi, Category } from "@/lib/categories-api"
+import { toast } from "sonner"
+import { RequireAuth } from "@/components/auth/require-auth"
+import { RichTextEditor } from "@/components/editor/rich-text-editor"
 
-export default function EditNewsPage({ params }: { params: { id: string } }) {
-  const [title, setTitle] = useState("Merkez Bankası Faiz Kararı Açıklandı")
-  const [excerpt, setExcerpt] = useState("TCMB, politika faizini yüzde 50 seviyesinde sabit tutma kararı aldı.")
-  const [category, setCategory] = useState("ekonomi")
-  const [content, setContent] = useState(
-    "Türkiye Cumhuriyet Merkez Bankası Para Politikası Kurulu, politika faizini yüzde 50 seviyesinde sabit tutma kararı aldı...",
-  )
-  const [tags, setTags] = useState<string[]>(["Merkez Bankası", "Faiz", "TCMB"])
+function EditNewsPageContent({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter()
+  const resolvedParams = use(params)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [news, setNews] = useState<News | null>(null)
+  const [title, setTitle] = useState("")
+  const [excerpt, setExcerpt] = useState("")
+  const [categoryId, setCategoryId] = useState<string>("")
+  const [content, setContent] = useState("")
+  const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
-  const [image, setImage] = useState("/central-bank-building.jpg")
+  const [image, setImage] = useState("")
+  const [status, setStatus] = useState<NewsStatus>("DRAFT")
+  const [metaTitle, setMetaTitle] = useState("")
+  const [metaDescription, setMetaDescription] = useState("")
+  const [publishedAt, setPublishedAt] = useState("")
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    loadCategories()
+    loadNews()
+  }, [resolvedParams.id])
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true)
+      const data = await categoriesApi.getAll()
+      setCategories(data)
+    } catch (error: any) {
+      console.error('Kategoriler yüklenemedi:', error)
+      toast.error(error.message || 'Kategoriler yüklenemedi')
+    } finally {
+      setCategoriesLoading(false)
+    }
+  }
+
+  const loadNews = async () => {
+    try {
+      setIsLoading(true)
+      const data = await newsApi.getOne(resolvedParams.id)
+      setNews(data)
+      setTitle(data.title)
+      setExcerpt(data.excerpt || "")
+      setCategoryId(data.categoryId)
+      setContent(data.content)
+      setTags(data.tags || [])
+      setImage(data.featuredImage || "")
+      setStatus(data.status)
+      setMetaTitle(data.metaTitle || "")
+      setMetaDescription(data.metaDescription || "")
+      setPublishedAt(data.publishedAt ? new Date(data.publishedAt).toISOString().slice(0, 16) : "")
+    } catch (error: any) {
+      toast.error(error.message || 'Haber yüklenemedi')
+      router.push('/admin/haberler')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -31,6 +90,107 @@ export default function EditNewsPage({ params }: { params: { id: string } }) {
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter((tag) => tag !== tagToRemove))
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    try {
+      const result = await newsApi.uploadImage(file)
+      setImage(result.url)
+      toast.success('Görsel başarıyla yüklendi')
+    } catch (error: any) {
+      toast.error(error.message || 'Görsel yüklenemedi')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!title || title.trim() === '') {
+      newErrors.title = 'Başlık zorunludur'
+    }
+
+    if (!content || content.trim() === '') {
+      newErrors.content = 'İçerik zorunludur'
+    }
+
+    if (!categoryId || categoryId === '') {
+      newErrors.categoryId = 'Kategori seçilmelidir'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!validateForm()) {
+      toast.error('Lütfen tüm zorunlu alanları doldurun')
+      // İlk hataya scroll yap
+      const firstErrorField = Object.keys(errors)[0]
+      if (firstErrorField) {
+        document.getElementById(firstErrorField)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const data = {
+        title: title.trim(),
+        excerpt: excerpt?.trim() || undefined,
+        content: content.trim(),
+        categoryId: categoryId,
+        status,
+        featuredImage: image?.trim() || undefined,
+        tags: tags.length > 0 ? tags : undefined,
+        metaTitle: metaTitle?.trim() || undefined,
+        metaDescription: metaDescription?.trim() || undefined,
+        publishedAt: publishedAt || undefined,
+      }
+
+      await newsApi.update(resolvedParams.id, data)
+      toast.success('Haber başarıyla güncellendi!')
+      router.push('/admin/haberler')
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Haber güncellenemedi'
+      toast.error(errorMessage)
+      console.error('Update error:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Bu haberi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
+      return
+    }
+
+    try {
+      await newsApi.delete(resolvedParams.id)
+      toast.success('Haber başarıyla silindi')
+      router.push('/admin/haberler')
+    } catch (error: any) {
+      toast.error(error.message || 'Haber silinemedi')
+    }
+  }
+
+  if (isLoading || categoriesLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!news) {
+    return null
   }
 
   return (
@@ -48,7 +208,7 @@ export default function EditNewsPage({ params }: { params: { id: string } }) {
               <h1 className="text-3xl font-bold">Haberi Düzenle</h1>
               <p className="text-(--color-foreground-muted)">Haber içeriğini güncelleyin</p>
             </div>
-            <Button variant="destructive" size="sm">
+            <Button variant="destructive" size="sm" onClick={handleDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
               Sil
             </Button>
@@ -57,222 +217,293 @@ export default function EditNewsPage({ params }: { params: { id: string } }) {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Temel Bilgiler</CardTitle>
-                <CardDescription>Haberin temel bilgilerini düzenleyin</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Başlık *</Label>
-                  <Input
-                    id="title"
-                    placeholder="Haber başlığını girin"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="excerpt">Özet *</Label>
-                  <Textarea
-                    id="excerpt"
-                    placeholder="Kısa bir özet yazın"
-                    rows={3}
-                    value={excerpt}
-                    onChange={(e) => setExcerpt(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category">Kategori *</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Kategori seçin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ekonomi">Ekonomi</SelectItem>
-                      <SelectItem value="piyasalar">Piyasalar</SelectItem>
-                      <SelectItem value="borsa">Borsa</SelectItem>
-                      <SelectItem value="kripto">Kripto</SelectItem>
-                      <SelectItem value="bankalar">Bankalar</SelectItem>
-                      <SelectItem value="finans">Finans</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Görsel</CardTitle>
-                <CardDescription>Haberin kapak görselini güncelleyin</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {image && (
-                  <div className="overflow-hidden rounded-lg border">
-                    <img src={image || "/placeholder.svg"} alt="Preview" className="aspect-video w-full object-cover" />
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Temel Bilgiler</CardTitle>
+                  <CardDescription>Haberin temel bilgilerini düzenleyin</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Başlık *</Label>
+                    <Input
+                      id="title"
+                      placeholder="Haber başlığını girin"
+                      value={title}
+                      onChange={(e) => {
+                        setTitle(e.target.value)
+                        if (errors.title) {
+                          setErrors(prev => ({ ...prev, title: '' }))
+                        }
+                      }}
+                      className={errors.title ? 'border-red-500' : ''}
+                      required
+                    />
+                    {errors.title && (
+                      <p className="text-sm text-red-500">{errors.title}</p>
+                    )}
                   </div>
-                )}
-                <div className="flex items-center justify-center rounded-lg border-2 border-dashed p-12 transition-colors hover:border-(--color-primary)">
-                  <div className="text-center">
-                    <Upload className="mx-auto mb-4 h-12 w-12 text-(--color-foreground-muted)" />
-                    <p className="mb-2 text-sm font-medium">Yeni görsel yüklemek için tıklayın</p>
-                    <p className="text-xs text-(--color-foreground-muted)">PNG, JPG veya WEBP (max. 5MB)</p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="excerpt">Özet</Label>
+                    <Textarea
+                      id="excerpt"
+                      placeholder="Kısa bir özet yazın"
+                      rows={3}
+                      value={excerpt}
+                      onChange={(e) => setExcerpt(e.target.value)}
+                    />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">veya Görsel URL'si</Label>
-                  <Input
-                    id="imageUrl"
-                    placeholder="https://example.com/image.jpg"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Kategori *</Label>
+                    <Select 
+                      value={categoryId} 
+                      onValueChange={(value) => {
+                        setCategoryId(value)
+                        if (errors.categoryId) {
+                          setErrors(prev => ({ ...prev, categoryId: '' }))
+                        }
+                      }}
+                      disabled={categoriesLoading}
+                    >
+                      <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
+                        <SelectValue placeholder={categoriesLoading ? "Kategoriler yükleniyor..." : "Kategori seçin"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.categoryId && (
+                      <p className="text-sm text-red-500">{errors.categoryId}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Görsel</CardTitle>
+                  <CardDescription>Haberin kapak görselini güncelleyin</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {image && (
+                    <div className="overflow-hidden rounded-lg border">
+                      <img src={image} alt="Preview" className="aspect-video w-full object-cover" />
+                    </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
                   />
-                </div>
-              </CardContent>
-            </Card>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-12 transition-colors hover:border-(--color-primary)"
+                  >
+                    <div className="text-center">
+                      {isUploading ? (
+                        <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-(--color-primary)" />
+                      ) : (
+                        <Upload className="mx-auto mb-4 h-12 w-12 text-(--color-foreground-muted)" />
+                      )}
+                      <p className="mb-2 text-sm font-medium">
+                        {isUploading ? 'Yükleniyor...' : 'Yeni görsel yüklemek için tıklayın'}
+                      </p>
+                      <p className="text-xs text-(--color-foreground-muted)">PNG, JPG veya WEBP (max. 5MB)</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imageUrl">veya Görsel URL'si</Label>
+                    <Input
+                      id="imageUrl"
+                      placeholder="https://example.com/image.jpg"
+                      value={image}
+                      onChange={(e) => setImage(e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>İçerik</CardTitle>
-                <CardDescription>Haberin tam içeriğini düzenleyin</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Haber içeriğini buraya yazın..."
-                  rows={15}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="resize-none font-mono"
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Etiketler</CardTitle>
-                <CardDescription>İçeriğinizle ilgili etiketleri yönetin</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Etiket ekle..."
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault()
-                        addTag()
+              <Card>
+                <CardHeader>
+                  <CardTitle>İçerik *</CardTitle>
+                  <CardDescription>Haberin tam içeriğini düzenleyin. Görsel ve video ekleyebilirsiniz.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RichTextEditor
+                    value={content}
+                    onChange={(value) => {
+                      setContent(value)
+                      if (errors.content) {
+                        setErrors(prev => ({ ...prev, content: '' }))
                       }
                     }}
+                    placeholder="İçeriğinizi buraya yazın..."
+                    error={errors.content}
                   />
-                  <Button type="button" onClick={addTag}>
-                    Ekle
-                  </Button>
-                </div>
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                        {tag} ×
-                      </Badge>
-                    ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Etiketler</CardTitle>
+                  <CardDescription>İçeriğinizle ilgili etiketleri yönetin</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Etiket ekle..."
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          addTag()
+                        }
+                      }}
+                    />
+                    <Button type="button" onClick={addTag}>
+                      Ekle
+                    </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
+                          {tag} ×
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <aside className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Yayınlama</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Durum</Label>
+                    <Select value={status} onValueChange={(value) => setStatus(value as NewsStatus)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DRAFT">Taslak</SelectItem>
+                        <SelectItem value="PUBLISHED">Yayınla</SelectItem>
+                        <SelectItem value="SCHEDULED">Zamanla</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Yayın Tarihi</Label>
+                    <Input
+                      id="date"
+                      type="datetime-local"
+                      value={publishedAt}
+                      onChange={(e) => setPublishedAt(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2 pt-4">
+                    <Button type="submit" className="w-full" disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Güncelleniyor...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Güncelle
+                        </>
+                      )}
+                    </Button>
+                    {news && (
+                      <Button asChild variant="outline" className="w-full bg-transparent">
+                        <Link href={`/haberler/${news.slug}`}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Görüntüle
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>SEO</CardTitle>
+                  <CardDescription>Arama motoru optimizasyonu</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="metaTitle">Meta Başlık</Label>
+                    <Input
+                      id="metaTitle"
+                      placeholder="SEO başlığı"
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value)}
+                    />
+                    <p className="text-xs text-(--color-foreground-muted)">Önerilen: 50-60 karakter</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="metaDescription">Meta Açıklama</Label>
+                    <Textarea
+                      id="metaDescription"
+                      placeholder="SEO açıklaması"
+                      rows={3}
+                      value={metaDescription}
+                      onChange={(e) => setMetaDescription(e.target.value)}
+                    />
+                    <p className="text-xs text-(--color-foreground-muted)">Önerilen: 150-160 karakter</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>İstatistikler</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-(--color-foreground-muted)">Görüntülenme:</span>
+                    <span className="font-medium">{news.views.toLocaleString('tr-TR')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-(--color-foreground-muted)">Oluşturulma:</span>
+                    <span className="font-medium">{new Date(news.createdAt).toLocaleDateString('tr-TR')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-(--color-foreground-muted)">Son Güncelleme:</span>
+                    <span className="font-medium">{new Date(news.updatedAt).toLocaleDateString('tr-TR')}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </aside>
           </div>
-
-          <aside className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Yayınlama</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="status">Durum</Label>
-                  <Select defaultValue="published">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Taslak</SelectItem>
-                      <SelectItem value="published">Yayınla</SelectItem>
-                      <SelectItem value="scheduled">Zamanla</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="author">Yazar</Label>
-                  <Input id="author" placeholder="Yazar adı" defaultValue="Ekonomi Editörü" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date">Yayın Tarihi</Label>
-                  <Input id="date" type="datetime-local" defaultValue="2025-12-18T10:00" />
-                </div>
-
-                <div className="flex flex-col gap-2 pt-4">
-                  <Button className="w-full">
-                    <Save className="mr-2 h-4 w-4" />
-                    Güncelle
-                  </Button>
-                  <Button asChild variant="outline" className="w-full bg-transparent">
-                    <Link href={`/haberler/${params.id}`}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      Görüntüle
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>SEO</CardTitle>
-                <CardDescription>Arama motoru optimizasyonu</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="metaTitle">Meta Başlık</Label>
-                  <Input id="metaTitle" placeholder="SEO başlığı" defaultValue={title} />
-                  <p className="text-xs text-(--color-foreground-muted)">Önerilen: 50-60 karakter</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="metaDescription">Meta Açıklama</Label>
-                  <Textarea id="metaDescription" placeholder="SEO açıklaması" rows={3} defaultValue={excerpt} />
-                  <p className="text-xs text-(--color-foreground-muted)">Önerilen: 150-160 karakter</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>İstatistikler</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-(--color-foreground-muted)">Görüntülenme:</span>
-                  <span className="font-medium">1,245</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-(--color-foreground-muted)">Paylaşım:</span>
-                  <span className="font-medium">32</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-(--color-foreground-muted)">Yorum:</span>
-                  <span className="font-medium">8</span>
-                </div>
-              </CardContent>
-            </Card>
-          </aside>
-        </div>
+        </form>
       </div>
     </div>
+  )
+}
+
+export default function EditNewsPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <RequireAuth requireAdmin>
+      <EditNewsPageContent params={params} />
+    </RequireAuth>
   )
 }

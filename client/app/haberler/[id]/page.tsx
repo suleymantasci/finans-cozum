@@ -1,83 +1,87 @@
-import type { Metadata } from "next"
+"use client"
+
+import { useEffect, useState, use } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Clock, User, Share2, ArrowRight, Calculator, TrendingUp, Bookmark, Send } from "lucide-react"
+import { ArrowLeft, Clock, User, Share2, ArrowRight, Calculator, TrendingUp, Bookmark, Send, Loader2 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { newsApi, News } from "@/lib/news-api"
+import { categoriesApi, Category } from "@/lib/categories-api"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
-const newsArticles = [
-  {
-    id: 1,
-    title: "Merkez Bankası Faiz Kararı Açıklandı",
-    excerpt: "TCMB, politika faizini yüzde 50 seviyesinde sabit tutma kararı aldı.",
-    category: "Ekonomi",
-    time: "2 saat önce",
-    image: "/central-bank-building.jpg",
-    author: "Ekonomi Editörü",
-    content: `
-      <p>Türkiye Cumhuriyet Merkez Bankası (TCMB) Para Politikası Kurulu, politika faizini yüzde 50 seviyesinde sabit tutma kararı aldı.</p>
-      
-      <p>Kurul toplantısının ardından yapılan açıklamada, enflasyondaki düşüş eğiliminin sürdüğü ancak beklentilerin yakından takip edilmesi gerektiği vurgulandı.</p>
-      
-      <h2>Piyasa Tepkileri</h2>
-      
-      <p>Faiz kararının ardından döviz kurlarında sınırlı bir hareket gözlendi. Borsa İstanbul endeksi ise karara pozitif tepki verdi ve günü yüzde 0.8 artışla tamamladı.</p>
-      
-      <p>Ekonomi uzmanları, Merkez Bankası'nın kararlı duruşunu sürdürdüğünü ve enflasyonla mücadelede ısrarcı olduğunu değerlendiriyor.</p>
-      
-      <h2>Gelecek Dönem Beklentileri</h2>
-      
-      <p>Analistler, önümüzdeki aylarda enflasyon verilerinin seyrine göre Merkez Bankası'nın faiz politikasında değişikliğe gidebileceğini tahmin ediyor.</p>
-      
-      <p>Yılın ikinci yarısında faiz indirimlerinin başlayabileceği öngörülüyor.</p>
-    `,
-  },
-]
+export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter()
+  const resolvedParams = use(params)
+  const [article, setArticle] = useState<News | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-const relatedTools = [
-  {
-    title: "Kredi Hesaplama",
-    description: "Aylık taksit hesaplayın",
-    icon: Calculator,
-    href: "/araclar/kredi-hesaplama",
-  },
-  {
-    title: "Döviz Çevirici",
-    description: "Anlık kur dönüşümü",
-    icon: TrendingUp,
-    href: "/araclar/doviz-cevirici",
-  },
-]
+  useEffect(() => {
+    loadCategories()
+    loadNews()
+  }, [resolvedParams.id])
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params
-  const article = newsArticles.find((a) => a.id === Number.parseInt(id))
-
-  if (!article) {
-    return {
-      title: "Haber Bulunamadı | Finanscözüm",
+  const loadCategories = async () => {
+    try {
+      const data = await categoriesApi.getPublic()
+      setCategories(data)
+    } catch (error: any) {
+      console.error('Kategoriler yüklenemedi:', error)
     }
   }
 
-  return {
-    title: `${article.title} | Finanscözüm`,
-    description: article.excerpt,
-    keywords: `${article.category}, finans haberleri, ekonomi`,
-    openGraph: {
-      title: article.title,
-      description: article.excerpt,
-      images: [article.image],
-    },
+  const loadNews = async () => {
+    try {
+      const slugOrId = resolvedParams.id
+      
+      setIsLoading(true)
+      const data = await newsApi.getOne(resolvedParams.id)
+      setArticle(data)
+    } catch (error: any) {
+      toast.error(error.message || 'Haber yüklenemedi')
+      router.push('/haberler')
+    } finally {
+      setIsLoading(false)
+    }
   }
-}
 
-export default async function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+  const getCategoryLabel = (item: News) => {
+    // Önce item.category objesinden name al
+    if (item.category && typeof item.category === 'object' && 'name' in item.category) {
+      return item.category.name
+    }
+    // Yoksa categoryId ile categories'den bul
+    if (item.categoryId) {
+      const category = categories.find(c => c.id === item.categoryId)
+      return category?.name || item.categoryId
+    }
+    return 'Kategori Yok'
+  }
 
-  const article = newsArticles.find((a) => a.id === Number.parseInt(id))
+  const getTimeAgo = (date: string) => {
+    const now = new Date()
+    const newsDate = new Date(date)
+    const diffInHours = Math.floor((now.getTime() - newsDate.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) return 'Az önce'
+    if (diffInHours < 24) return `${diffInHours} saat önce`
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays} gün önce`
+    return newsDate.toLocaleDateString('tr-TR')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
 
   if (!article) {
     return (
@@ -93,21 +97,18 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
     )
   }
 
-  const relatedNews = newsArticles.filter((a) => a.id !== article.id && a.category === article.category).slice(0, 3)
-
-  const comments = [
+  const relatedTools = [
     {
-      id: 1,
-      author: "Ahmet Yılmaz",
-      time: "1 saat önce",
-      content:
-        "Merkez Bankası'nın kararlı duruşu piyasaları olumlu etkiliyor. Enflasyonla mücadelede başarılı olacağına inanıyorum.",
+      title: "Kredi Hesaplama",
+      description: "Aylık taksit hesaplayın",
+      icon: Calculator,
+      href: "/araclar/kredi-hesaplama",
     },
     {
-      id: 2,
-      author: "Elif Demir",
-      time: "3 saat önce",
-      content: "Faiz kararı beklentiler doğrultusundaydı. Önümüzdeki aylarda indirim gelebilir.",
+      title: "Döviz Çevirici",
+      description: "Anlık kur dönüşümü",
+      icon: TrendingUp,
+      href: "/araclar/doviz-cevirici",
     },
   ]
 
@@ -124,7 +125,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
         <div className="grid gap-8 lg:grid-cols-[1fr_350px]">
           <div className="max-w-3xl">
             <div className="mb-6">
-              <Badge className="mb-4 text-sm">{article.category}</Badge>
+              <Badge className="mb-4 text-sm">{getCategoryLabel(article)}</Badge>
               <h1 className="mb-6 text-4xl font-bold leading-tight md:text-5xl text-balance">{article.title}</h1>
               <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-(--color-card) p-4">
                 <div className="flex items-center gap-2">
@@ -132,8 +133,10 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
                     <User className="h-5 w-5 text-(--color-primary)" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{article.author}</p>
-                    <p className="text-xs text-(--color-foreground-muted)">{article.time}</p>
+                    <p className="text-sm font-medium">{article.author.name || article.author.email}</p>
+                    <p className="text-xs text-(--color-foreground-muted)">
+                      {article.publishedAt ? getTimeAgo(article.publishedAt) : new Date(article.createdAt).toLocaleDateString('tr-TR')}
+                    </p>
                   </div>
                 </div>
                 <div className="ml-auto flex gap-2">
@@ -152,123 +155,67 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
                       <DropdownMenuItem>Twitter'da Paylaş</DropdownMenuItem>
                       <DropdownMenuItem>Facebook'ta Paylaş</DropdownMenuItem>
                       <DropdownMenuItem>WhatsApp'ta Paylaş</DropdownMenuItem>
-                      <DropdownMenuItem>Linki Kopyala</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        navigator.clipboard.writeText(window.location.href)
+                        toast.success('Link kopyalandı!')
+                      }}>Linki Kopyala</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </div>
             </div>
 
-            <div className="mb-8 overflow-hidden rounded-xl">
-              <img
-                src={article.image || "/placeholder.svg"}
-                alt={article.title}
-                className="aspect-video w-full object-cover"
-              />
-            </div>
+            {article.featuredImage && (
+              <div className="mb-8 overflow-hidden rounded-xl">
+                <img
+                  src={article.featuredImage}
+                  alt={article.title}
+                  className="aspect-video w-full object-cover"
+                />
+              </div>
+            )}
 
             <div
               className="prose prose-lg max-w-none leading-relaxed dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
 
-            <div className="mt-10 rounded-lg border bg-(--color-muted) p-6">
-              <div className="mb-4 flex flex-wrap gap-2">
-                <span className="text-sm font-medium">Etiketler:</span>
-                <Badge variant="secondary">Merkez Bankası</Badge>
-                <Badge variant="secondary">Faiz Oranları</Badge>
-                <Badge variant="secondary">TCMB</Badge>
-                <Badge variant="secondary">Ekonomi</Badge>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button variant="outline" size="sm">
-                  <Bookmark className="mr-2 h-4 w-4" />
-                  Kaydet
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Share2 className="mr-2 h-4 w-4" />
-                      Paylaş
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Twitter'da Paylaş</DropdownMenuItem>
-                    <DropdownMenuItem>Facebook'ta Paylaş</DropdownMenuItem>
-                    <DropdownMenuItem>WhatsApp'ta Paylaş</DropdownMenuItem>
-                    <DropdownMenuItem>Linki Kopyala</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            <div className="mt-10">
-              <h2 className="mb-6 text-2xl font-bold">Yorumlar ({comments.length})</h2>
-
-              <div className="mb-8 rounded-xl border bg-(--color-card) p-6">
-                <h3 className="mb-4 font-semibold">Yorum Yap</h3>
-                <div className="space-y-4">
-                  <Input placeholder="Adınız" />
-                  <Textarea placeholder="Yorumunuzu yazın..." rows={4} className="resize-none" />
-                  <div className="flex justify-end">
-                    <Button>
-                      <Send className="mr-2 h-4 w-4" />
-                      Yorum Gönder
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="rounded-xl border bg-(--color-card) p-6">
-                    <div className="mb-3 flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary)/10">
-                          <User className="h-5 w-5 text-(--color-primary)" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{comment.author}</p>
-                          <p className="text-xs text-(--color-foreground-muted)">{comment.time}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="leading-relaxed text-(--color-foreground-muted)">{comment.content}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <aside className="space-y-6">
-            {relatedNews.length > 0 && (
-              <div className="rounded-xl border bg-(--color-card) p-6">
-                <h3 className="mb-4 text-xl font-bold">İlgili Haberler</h3>
-                <div className="space-y-4">
-                  {relatedNews.map((news) => (
-                    <Card key={news.id} className="group overflow-hidden transition-shadow hover:shadow-md">
-                      <Link href={`/haberler/${news.id}`}>
-                        <div className="relative aspect-video overflow-hidden">
-                          <img
-                            src={news.image || "/placeholder.svg"}
-                            alt={news.title}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
-                        <CardHeader className="p-4">
-                          <CardTitle className="line-clamp-2 text-base leading-tight">{news.title}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 text-xs">
-                            <Clock className="h-3 w-3" />
-                            {news.time}
-                          </CardDescription>
-                        </CardHeader>
-                      </Link>
-                    </Card>
+            {article.tags && article.tags.length > 0 && (
+              <div className="mt-10 rounded-lg border bg-(--color-muted) p-6">
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span className="text-sm font-medium">Etiketler:</span>
+                  {article.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary">{tag}</Badge>
                   ))}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" size="sm">
+                    <Bookmark className="mr-2 h-4 w-4" />
+                    Kaydet
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Paylaş
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>Twitter'da Paylaş</DropdownMenuItem>
+                      <DropdownMenuItem>Facebook'ta Paylaş</DropdownMenuItem>
+                      <DropdownMenuItem>WhatsApp'ta Paylaş</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        navigator.clipboard.writeText(window.location.href)
+                        toast.success('Link kopyalandı!')
+                      }}>Linki Kopyala</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             )}
+          </div>
 
+          <aside className="space-y-6">
             <div className="rounded-xl border bg-(--color-card) p-6">
               <h3 className="mb-4 text-xl font-bold">Popüler Araçlar</h3>
               <div className="space-y-3">

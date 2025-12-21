@@ -1,0 +1,11 @@
+export enum NewsCategory {
+  EKONOMI = 'EKONOMI',
+  PIYASALAR = 'PIYASALAR',
+  BORSA = 'BORSA',
+  KRIPTO = 'KRIPTO',
+  BANKALAR = 'BANKALAR',
+  FINANS = 'FINANS',
+  EMTIA = 'EMTIA',
+}
+
+

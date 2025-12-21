@@ -30,5 +30,59 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  news News[]
+
   @@map("users")
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  news News[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("categories")
+}
+
+model News {
+  id              String     @id @default(uuid())
+  title           String
+  slug            String     @unique // SEO-friendly URL slug
+  excerpt         String?    @db.Text
+  content         String     @db.Text // Rich text content (HTML)
+  categoryId      String
+  category        Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  status          NewsStatus @default(DRAFT)
+  featuredImage   String? // URL to uploaded image
+  authorId        String
+  author          User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags            String[] // Array of tags
+  metaTitle       String?
+  metaDescription String?    @db.Text
+  views           Int        @default(0)
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([authorId])
+  @@index([slug])
+  @@map("news")
 }

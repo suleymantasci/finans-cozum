@@ -11,6 +11,10 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Static files serving - uploads klasörü için
+  const express = require('express');
+  app.use('/uploads', express.static('uploads'));
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({

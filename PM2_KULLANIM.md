@@ -162,3 +162,4 @@ npm uninstall -g pm2        # PM2'yi kaldır
 - Production'da güçlü şifreler kullanın
 - Firewall kurallarını kontrol edin
 
+

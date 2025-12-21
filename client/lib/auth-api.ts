@@ -43,6 +43,21 @@ export interface User {
 }
 
 export const authApi = {
+  get: <T>(endpoint: string, options?: RequestInit) =>
+    api.get<T>(endpoint, options),
+
+  post: <T>(endpoint: string, data?: any, options?: RequestInit) =>
+    api.post<T>(endpoint, data, options),
+
+  put: <T>(endpoint: string, data?: any, options?: RequestInit) =>
+    api.put<T>(endpoint, data, options),
+
+  patch: <T>(endpoint: string, data?: any, options?: RequestInit) =>
+    api.patch<T>(endpoint, data, options),
+
+  delete: <T>(endpoint: string, options?: RequestInit) =>
+    api.delete<T>(endpoint, options),
+
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     return api.post<AuthResponse>('/auth/login', data);
   },

@@ -50,3 +50,4 @@ echo "🛑 Durdurmak için: pm2 stop all"
 echo "▶️  Başlatmak için: pm2 start all"
 echo "🔄 Yeniden başlatmak için: pm2 restart all"
 
+
