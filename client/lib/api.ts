@@ -47,7 +47,27 @@ async function fetchApi<T>(
     );
   }
 
-  return response.json();
+  // 204 No Content veya 205 Reset Content gibi boş response'lar için
+  if (response.status === 204 || response.status === 205) {
+    return undefined as T;
+  }
+
+  // Response body'si boş olabilir, kontrol et
+  const contentType = response.headers.get('content-type');
+  const text = await response.text();
+  
+  // Eğer body boşsa undefined döndür
+  if (!text || text.trim() === '') {
+    return undefined as T;
+  }
+
+  // JSON parse et
+  try {
+    return JSON.parse(text) as T;
+  } catch (error) {
+    // JSON değilse text olarak döndür
+    return text as T;
+  }
 }
 
 export const api = {

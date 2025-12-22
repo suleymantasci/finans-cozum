@@ -26,6 +26,7 @@ function CategoriesPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadCategories()
@@ -51,15 +52,20 @@ function CategoriesPageContent() {
   const confirmDelete = async () => {
     if (!categoryToDelete) return
 
+    setIsDeleting(true)
     try {
       await categoriesApi.delete(categoryToDelete.id)
       toast.success('Kategori başarıyla silindi')
-      loadCategories()
-    } catch (error: any) {
-      toast.error(error.message || 'Kategori silinemedi')
-    } finally {
       setDeleteDialogOpen(false)
       setCategoryToDelete(null)
+      // Listeyi güncelle
+      await loadCategories()
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Kategori silinemedi'
+      toast.error(errorMessage)
+      console.error('Kategori silme hatası:', error)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -184,10 +190,21 @@ function CategoriesPageContent() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>İptal</AlertDialogCancel>
             {(!categoryToDelete?._count || categoryToDelete._count.news === 0) && (
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                Sil
+              <AlertDialogAction 
+                onClick={confirmDelete} 
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Siliniyor...
+                  </>
+                ) : (
+                  'Sil'
+                )}
               </AlertDialogAction>
             )}
           </AlertDialogFooter>
