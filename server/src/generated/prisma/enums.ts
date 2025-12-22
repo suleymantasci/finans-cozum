@@ -24,3 +24,67 @@ export const NewsStatus = {
 } as const
 
 export type NewsStatus = (typeof NewsStatus)[keyof typeof NewsStatus]
+
+
+export const NewsAdSlotPosition = {
+  TOP: 'TOP',
+  BETWEEN_NEWS: 'BETWEEN_NEWS',
+  SIDEBAR_LEFT: 'SIDEBAR_LEFT',
+  SIDEBAR_RIGHT: 'SIDEBAR_RIGHT',
+  AFTER_IMAGE: 'AFTER_IMAGE',
+  IN_CONTENT: 'IN_CONTENT',
+  BOTTOM: 'BOTTOM'
+} as const
+
+export type NewsAdSlotPosition = (typeof NewsAdSlotPosition)[keyof typeof NewsAdSlotPosition]
+
+
+export const ToolStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type ToolStatus = (typeof ToolStatus)[keyof typeof ToolStatus]
+
+
+export const ToolDataSourceType = {
+  STATIC: 'STATIC',
+  DATABASE: 'DATABASE',
+  EXTERNAL_API: 'EXTERNAL_API'
+} as const
+
+export type ToolDataSourceType = (typeof ToolDataSourceType)[keyof typeof ToolDataSourceType]
+
+
+export const AdSlotPosition = {
+  TOP: 'TOP',
+  SIDEBAR_LEFT: 'SIDEBAR_LEFT',
+  SIDEBAR_RIGHT: 'SIDEBAR_RIGHT',
+  MIDDLE: 'MIDDLE',
+  BOTTOM: 'BOTTOM',
+  INLINE: 'INLINE'
+} as const
+
+export type AdSlotPosition = (typeof AdSlotPosition)[keyof typeof AdSlotPosition]
+
+
+export const SyncStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+} as const
+
+export type SyncStatus = (typeof SyncStatus)[keyof typeof SyncStatus]
+
+
+export const SyncFrequency = {
+  HOURLY: 'HOURLY',
+  DAILY: 'DAILY',
+  TWICE_DAILY: 'TWICE_DAILY',
+  FOUR_TIMES_DAILY: 'FOUR_TIMES_DAILY',
+  CUSTOM: 'CUSTOM'
+} as const
+
+export type SyncFrequency = (typeof SyncFrequency)[keyof typeof SyncFrequency]

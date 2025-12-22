@@ -386,7 +386,14 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Category: 'Category',
-  News: 'News'
+  News: 'News',
+  NewsAdSlot: 'NewsAdSlot',
+  ToolCategory: 'ToolCategory',
+  Tool: 'Tool',
+  AdSlotTemplate: 'AdSlotTemplate',
+  ToolAdSlot: 'ToolAdSlot',
+  ToolDataSync: 'ToolDataSync',
+  ExternalData: 'ExternalData'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "category" | "news"
+    modelProps: "user" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +635,524 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NewsAdSlot: {
+      payload: Prisma.$NewsAdSlotPayload<ExtArgs>
+      fields: Prisma.NewsAdSlotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NewsAdSlotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NewsAdSlotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>
+        }
+        findFirst: {
+          args: Prisma.NewsAdSlotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NewsAdSlotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>
+        }
+        findMany: {
+          args: Prisma.NewsAdSlotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>[]
+        }
+        create: {
+          args: Prisma.NewsAdSlotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>
+        }
+        createMany: {
+          args: Prisma.NewsAdSlotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NewsAdSlotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>[]
+        }
+        delete: {
+          args: Prisma.NewsAdSlotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>
+        }
+        update: {
+          args: Prisma.NewsAdSlotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>
+        }
+        deleteMany: {
+          args: Prisma.NewsAdSlotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NewsAdSlotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NewsAdSlotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>[]
+        }
+        upsert: {
+          args: Prisma.NewsAdSlotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsAdSlotPayload>
+        }
+        aggregate: {
+          args: Prisma.NewsAdSlotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNewsAdSlot>
+        }
+        groupBy: {
+          args: Prisma.NewsAdSlotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsAdSlotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NewsAdSlotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsAdSlotCountAggregateOutputType> | number
+        }
+      }
+    }
+    ToolCategory: {
+      payload: Prisma.$ToolCategoryPayload<ExtArgs>
+      fields: Prisma.ToolCategoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ToolCategoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ToolCategoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>
+        }
+        findFirst: {
+          args: Prisma.ToolCategoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ToolCategoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>
+        }
+        findMany: {
+          args: Prisma.ToolCategoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>[]
+        }
+        create: {
+          args: Prisma.ToolCategoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>
+        }
+        createMany: {
+          args: Prisma.ToolCategoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ToolCategoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>[]
+        }
+        delete: {
+          args: Prisma.ToolCategoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>
+        }
+        update: {
+          args: Prisma.ToolCategoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ToolCategoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ToolCategoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ToolCategoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.ToolCategoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCategoryPayload>
+        }
+        aggregate: {
+          args: Prisma.ToolCategoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateToolCategory>
+        }
+        groupBy: {
+          args: Prisma.ToolCategoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolCategoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ToolCategoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolCategoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    Tool: {
+      payload: Prisma.$ToolPayload<ExtArgs>
+      fields: Prisma.ToolFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ToolFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ToolFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>
+        }
+        findFirst: {
+          args: Prisma.ToolFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ToolFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>
+        }
+        findMany: {
+          args: Prisma.ToolFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>[]
+        }
+        create: {
+          args: Prisma.ToolCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>
+        }
+        createMany: {
+          args: Prisma.ToolCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ToolCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>[]
+        }
+        delete: {
+          args: Prisma.ToolDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>
+        }
+        update: {
+          args: Prisma.ToolUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>
+        }
+        deleteMany: {
+          args: Prisma.ToolDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ToolUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ToolUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>[]
+        }
+        upsert: {
+          args: Prisma.ToolUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolPayload>
+        }
+        aggregate: {
+          args: Prisma.ToolAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTool>
+        }
+        groupBy: {
+          args: Prisma.ToolGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ToolCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolCountAggregateOutputType> | number
+        }
+      }
+    }
+    AdSlotTemplate: {
+      payload: Prisma.$AdSlotTemplatePayload<ExtArgs>
+      fields: Prisma.AdSlotTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AdSlotTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AdSlotTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.AdSlotTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AdSlotTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.AdSlotTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.AdSlotTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.AdSlotTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AdSlotTemplateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>[]
+        }
+        delete: {
+          args: Prisma.AdSlotTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>
+        }
+        update: {
+          args: Prisma.AdSlotTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.AdSlotTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AdSlotTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AdSlotTemplateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>[]
+        }
+        upsert: {
+          args: Prisma.AdSlotTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdSlotTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.AdSlotTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAdSlotTemplate>
+        }
+        groupBy: {
+          args: Prisma.AdSlotTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdSlotTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AdSlotTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdSlotTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
+    ToolAdSlot: {
+      payload: Prisma.$ToolAdSlotPayload<ExtArgs>
+      fields: Prisma.ToolAdSlotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ToolAdSlotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ToolAdSlotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>
+        }
+        findFirst: {
+          args: Prisma.ToolAdSlotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ToolAdSlotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>
+        }
+        findMany: {
+          args: Prisma.ToolAdSlotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>[]
+        }
+        create: {
+          args: Prisma.ToolAdSlotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>
+        }
+        createMany: {
+          args: Prisma.ToolAdSlotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ToolAdSlotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>[]
+        }
+        delete: {
+          args: Prisma.ToolAdSlotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>
+        }
+        update: {
+          args: Prisma.ToolAdSlotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>
+        }
+        deleteMany: {
+          args: Prisma.ToolAdSlotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ToolAdSlotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ToolAdSlotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>[]
+        }
+        upsert: {
+          args: Prisma.ToolAdSlotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolAdSlotPayload>
+        }
+        aggregate: {
+          args: Prisma.ToolAdSlotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateToolAdSlot>
+        }
+        groupBy: {
+          args: Prisma.ToolAdSlotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolAdSlotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ToolAdSlotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolAdSlotCountAggregateOutputType> | number
+        }
+      }
+    }
+    ToolDataSync: {
+      payload: Prisma.$ToolDataSyncPayload<ExtArgs>
+      fields: Prisma.ToolDataSyncFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ToolDataSyncFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ToolDataSyncFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>
+        }
+        findFirst: {
+          args: Prisma.ToolDataSyncFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ToolDataSyncFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>
+        }
+        findMany: {
+          args: Prisma.ToolDataSyncFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>[]
+        }
+        create: {
+          args: Prisma.ToolDataSyncCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>
+        }
+        createMany: {
+          args: Prisma.ToolDataSyncCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ToolDataSyncCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>[]
+        }
+        delete: {
+          args: Prisma.ToolDataSyncDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>
+        }
+        update: {
+          args: Prisma.ToolDataSyncUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>
+        }
+        deleteMany: {
+          args: Prisma.ToolDataSyncDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ToolDataSyncUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ToolDataSyncUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>[]
+        }
+        upsert: {
+          args: Prisma.ToolDataSyncUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolDataSyncPayload>
+        }
+        aggregate: {
+          args: Prisma.ToolDataSyncAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateToolDataSync>
+        }
+        groupBy: {
+          args: Prisma.ToolDataSyncGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolDataSyncGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ToolDataSyncCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolDataSyncCountAggregateOutputType> | number
+        }
+      }
+    }
+    ExternalData: {
+      payload: Prisma.$ExternalDataPayload<ExtArgs>
+      fields: Prisma.ExternalDataFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExternalDataFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExternalDataFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>
+        }
+        findFirst: {
+          args: Prisma.ExternalDataFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExternalDataFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>
+        }
+        findMany: {
+          args: Prisma.ExternalDataFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>[]
+        }
+        create: {
+          args: Prisma.ExternalDataCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>
+        }
+        createMany: {
+          args: Prisma.ExternalDataCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExternalDataCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>[]
+        }
+        delete: {
+          args: Prisma.ExternalDataDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>
+        }
+        update: {
+          args: Prisma.ExternalDataUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExternalDataDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExternalDataUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExternalDataUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExternalDataUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalDataPayload>
+        }
+        aggregate: {
+          args: Prisma.ExternalDataAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExternalData>
+        }
+        groupBy: {
+          args: Prisma.ExternalDataGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalDataGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExternalDataCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalDataCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -723,12 +1248,175 @@ export const NewsScalarFieldEnum = {
 export type NewsScalarFieldEnum = (typeof NewsScalarFieldEnum)[keyof typeof NewsScalarFieldEnum]
 
 
+export const NewsAdSlotScalarFieldEnum = {
+  id: 'id',
+  position: 'position',
+  isActive: 'isActive',
+  order: 'order',
+  content: 'content',
+  scriptUrl: 'scriptUrl',
+  imageUrl: 'imageUrl',
+  linkUrl: 'linkUrl',
+  showOnMobile: 'showOnMobile',
+  showOnTablet: 'showOnTablet',
+  showOnDesktop: 'showOnDesktop',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NewsAdSlotScalarFieldEnum = (typeof NewsAdSlotScalarFieldEnum)[keyof typeof NewsAdSlotScalarFieldEnum]
+
+
+export const ToolCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  order: 'order',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolCategoryScalarFieldEnum = (typeof ToolCategoryScalarFieldEnum)[keyof typeof ToolCategoryScalarFieldEnum]
+
+
+export const ToolScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  status: 'status',
+  component: 'component',
+  icon: 'icon',
+  color: 'color',
+  bgColor: 'bgColor',
+  order: 'order',
+  isFeatured: 'isFeatured',
+  dataSourceType: 'dataSourceType',
+  dataSourceConfig: 'dataSourceConfig',
+  config: 'config',
+  metaTitle: 'metaTitle',
+  metaDescription: 'metaDescription',
+  keywords: 'keywords',
+  views: 'views',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolScalarFieldEnum = (typeof ToolScalarFieldEnum)[keyof typeof ToolScalarFieldEnum]
+
+
+export const AdSlotTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  position: 'position',
+  isActive: 'isActive',
+  content: 'content',
+  scriptUrl: 'scriptUrl',
+  imageUrl: 'imageUrl',
+  linkUrl: 'linkUrl',
+  showOnMobile: 'showOnMobile',
+  showOnTablet: 'showOnTablet',
+  showOnDesktop: 'showOnDesktop',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AdSlotTemplateScalarFieldEnum = (typeof AdSlotTemplateScalarFieldEnum)[keyof typeof AdSlotTemplateScalarFieldEnum]
+
+
+export const ToolAdSlotScalarFieldEnum = {
+  id: 'id',
+  toolId: 'toolId',
+  templateId: 'templateId',
+  position: 'position',
+  isActive: 'isActive',
+  order: 'order',
+  content: 'content',
+  scriptUrl: 'scriptUrl',
+  imageUrl: 'imageUrl',
+  linkUrl: 'linkUrl',
+  showOnMobile: 'showOnMobile',
+  showOnTablet: 'showOnTablet',
+  showOnDesktop: 'showOnDesktop',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolAdSlotScalarFieldEnum = (typeof ToolAdSlotScalarFieldEnum)[keyof typeof ToolAdSlotScalarFieldEnum]
+
+
+export const ToolDataSyncScalarFieldEnum = {
+  id: 'id',
+  toolId: 'toolId',
+  name: 'name',
+  description: 'description',
+  apiUrl: 'apiUrl',
+  apiMethod: 'apiMethod',
+  apiHeaders: 'apiHeaders',
+  apiBody: 'apiBody',
+  dataPath: 'dataPath',
+  transformScript: 'transformScript',
+  frequency: 'frequency',
+  cronExpression: 'cronExpression',
+  timezone: 'timezone',
+  isActive: 'isActive',
+  lastRunAt: 'lastRunAt',
+  nextRunAt: 'nextRunAt',
+  lastStatus: 'lastStatus',
+  lastError: 'lastError',
+  runCount: 'runCount',
+  successCount: 'successCount',
+  failCount: 'failCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolDataSyncScalarFieldEnum = (typeof ToolDataSyncScalarFieldEnum)[keyof typeof ToolDataSyncScalarFieldEnum]
+
+
+export const ExternalDataScalarFieldEnum = {
+  id: 'id',
+  syncId: 'syncId',
+  data: 'data',
+  dataHash: 'dataHash',
+  source: 'source',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type ExternalDataScalarFieldEnum = (typeof ExternalDataScalarFieldEnum)[keyof typeof ExternalDataScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -745,6 +1433,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -827,6 +1524,104 @@ export type EnumNewsStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'NewsStatus[]'
  */
 export type ListEnumNewsStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NewsStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'NewsAdSlotPosition'
+ */
+export type EnumNewsAdSlotPositionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NewsAdSlotPosition'>
+    
+
+
+/**
+ * Reference to a field of type 'NewsAdSlotPosition[]'
+ */
+export type ListEnumNewsAdSlotPositionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NewsAdSlotPosition[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ToolStatus'
+ */
+export type EnumToolStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ToolStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ToolStatus[]'
+ */
+export type ListEnumToolStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ToolStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ToolDataSourceType'
+ */
+export type EnumToolDataSourceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ToolDataSourceType'>
+    
+
+
+/**
+ * Reference to a field of type 'ToolDataSourceType[]'
+ */
+export type ListEnumToolDataSourceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ToolDataSourceType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'AdSlotPosition'
+ */
+export type EnumAdSlotPositionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdSlotPosition'>
+    
+
+
+/**
+ * Reference to a field of type 'AdSlotPosition[]'
+ */
+export type ListEnumAdSlotPositionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdSlotPosition[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncFrequency'
+ */
+export type EnumSyncFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncFrequency'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncFrequency[]'
+ */
+export type ListEnumSyncFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncFrequency[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncStatus'
+ */
+export type EnumSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncStatus[]'
+ */
+export type ListEnumSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncStatus[]'>
     
 
 
@@ -941,6 +1736,13 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   category?: Prisma.CategoryOmit
   news?: Prisma.NewsOmit
+  newsAdSlot?: Prisma.NewsAdSlotOmit
+  toolCategory?: Prisma.ToolCategoryOmit
+  tool?: Prisma.ToolOmit
+  adSlotTemplate?: Prisma.AdSlotTemplateOmit
+  toolAdSlot?: Prisma.ToolAdSlotOmit
+  toolDataSync?: Prisma.ToolDataSyncOmit
+  externalData?: Prisma.ExternalDataOmit
 }
 
 /* Types for Logging */

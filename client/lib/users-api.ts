@@ -27,6 +27,13 @@ export interface UpdateUserDto {
   role?: 'USER' | 'ADMIN';
 }
 
+export interface UserStats {
+  total: number;
+  thisMonth: number;
+  lastMonth: number;
+  change: number;
+}
+
 export const usersApi = {
   // Admin: Tüm kullanıcıları listele (pagination ve arama ile)
   getAll: async (search?: string, limit?: number, offset?: number): Promise<UsersListResponse> => {
@@ -47,6 +54,11 @@ export const usersApi = {
   // Admin: Kullanıcı sil
   delete: async (id: string): Promise<void> => {
     return authApi.delete<void>(`/users/${id}`);
+  },
+
+  // Admin: Kullanıcı istatistikleri
+  getStats: async (): Promise<UserStats> => {
+    return authApi.get<UserStats>('/users/stats');
   },
 };
 

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Clock, Calculator, TrendingUp, Loader2 } from "lucide-react"
 import { newsApi, News } from "@/lib/news-api"
 import { categoriesApi, Category } from "@/lib/categories-api"
+import { newsAdsApi, NewsAdSlot } from "@/lib/news-ads-api"
+import { NewsAdSlotDisplay } from "@/components/news/AdSlotDisplay"
 import { toast } from "sonner"
 
 
@@ -36,16 +38,27 @@ const marketSummary = [
 export default function NewsPage() {
   const [news, setNews] = useState<News[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [adSlots, setAdSlots] = useState<NewsAdSlot[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("Tümü")
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     loadCategories()
+    loadAdSlots()
   }, [])
 
   useEffect(() => {
     loadNews()
   }, [selectedCategory])
+
+  const loadAdSlots = async () => {
+    try {
+      const slots = await newsAdsApi.getActive()
+      setAdSlots(slots)
+    } catch (error) {
+      console.error('Reklam alanları yüklenemedi:', error)
+    }
+  }
 
   const loadCategories = async () => {
     try {
@@ -97,6 +110,28 @@ export default function NewsPage() {
   const featuredNews = news[0]
   const otherNews = news.slice(1)
 
+  // Reklam alanlarını pozisyonlara göre grupla
+  const adSlotsByPosition = {
+    TOP: adSlots.filter((slot) => slot.position === 'TOP'),
+    BETWEEN_NEWS: adSlots.filter((slot) => slot.position === 'BETWEEN_NEWS'),
+    BOTTOM: adSlots.filter((slot) => slot.position === 'BOTTOM'),
+  }
+
+  // BETWEEN_NEWS reklamları için gösterim sırası: 3, 8, 20, 35, 50...
+  const getAdPositions = (totalAds: number) => {
+    const positions: number[] = []
+    if (totalAds >= 1) positions.push(3)
+    if (totalAds >= 2) positions.push(8)
+    if (totalAds >= 3) positions.push(20)
+    if (totalAds >= 4) positions.push(35)
+    if (totalAds >= 5) positions.push(50)
+    // Daha fazla reklam varsa her 20'de bir ekle
+    for (let i = 6; i <= totalAds; i++) {
+      positions.push(20 + (i - 3) * 15)
+    }
+    return positions
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -108,6 +143,15 @@ export default function NewsPage() {
   return (
     <div className="min-h-screen">
       <div className="container mx-auto px-4 py-12">
+        {/* TOP Ad Slots */}
+        {adSlotsByPosition.TOP.length > 0 && (
+          <div className="mb-6">
+            {adSlotsByPosition.TOP.map((slot) => (
+              <NewsAdSlotDisplay key={slot.id} slot={slot} />
+            ))}
+          </div>
+        )}
+
         <div className="mb-10">
           <h1 className="mb-4 text-4xl font-bold md:text-5xl">Finans Haberleri</h1>
           <p className="text-lg text-(--color-foreground-muted)">Finans dünyasından en güncel haberler ve analizler</p>
@@ -199,41 +243,70 @@ export default function NewsPage() {
             <p className="text-center text-(--color-foreground-muted)">Henüz haber bulunmuyor</p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {otherNews.map((article) => (
-                <Card key={article.id} className="group overflow-hidden transition-shadow hover:shadow-lg">
-                  <Link href={`/haberler/${article.id}`}>
-                    <div className="relative aspect-[4/3] overflow-hidden sm:aspect-video">
-                      <img
-                        src={article.featuredImage || "/placeholder.svg"}
-                        alt={article.title}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
-                      <Badge className="absolute right-2 top-2 bg-white/90 text-black backdrop-blur-sm sm:right-3 sm:top-3">
-                        {getCategoryLabel(article)}
-                      </Badge>
+              {(() => {
+                const adPositions = getAdPositions(adSlotsByPosition.BETWEEN_NEWS.length)
+                let adIndex = 0
+                
+                return otherNews.map((article, index) => {
+                  const showAd = adPositions.includes(index + 1) && adIndex < adSlotsByPosition.BETWEEN_NEWS.length
+                  const currentAd = showAd ? adSlotsByPosition.BETWEEN_NEWS[adIndex] : null
+                  
+                  if (showAd) adIndex++
+                  
+                  return (
+                    <div key={article.id}>
+                      <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
+                        <Link href={`/haberler/${article.id}`}>
+                          <div className="relative aspect-[4/3] overflow-hidden sm:aspect-video">
+                            <img
+                              src={article.featuredImage || "/placeholder.svg"}
+                              alt={article.title}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            />
+                            <Badge className="absolute right-2 top-2 bg-white/90 text-black backdrop-blur-sm sm:right-3 sm:top-3">
+                              {getCategoryLabel(article)}
+                            </Badge>
+                          </div>
+                        </Link>
+                        <CardHeader className="p-3 sm:p-6">
+                          <div className="mb-1 flex items-center gap-1 text-xs text-(--color-foreground-muted)">
+                            <Clock className="h-3 w-3" />
+                            {article.publishedAt ? getTimeAgo(article.publishedAt) : 'Yeni'}
+                          </div>
+                          <CardTitle className="line-clamp-2 text-base leading-tight sm:text-lg">{article.title}</CardTitle>
+                          <CardDescription className="line-clamp-2 text-sm">{article.excerpt || article.title}</CardDescription>
+                        </CardHeader>
+                        <CardFooter className="p-3 pt-0 sm:p-6 sm:pt-0">
+                          <Button asChild variant="ghost" size="sm" className="w-full justify-between text-sm">
+                            <Link href={`/haberler/${article.slug}`}>
+                              Devamını Oku
+                              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Link>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                      {/* BETWEEN_NEWS reklamları - belirlenen pozisyonlarda */}
+                      {currentAd && (
+                        <div className="col-span-full mt-4">
+                          <NewsAdSlotDisplay key={currentAd.id} slot={currentAd} />
+                        </div>
+                      )}
                     </div>
-                  </Link>
-                  <CardHeader className="p-3 sm:p-6">
-                    <div className="mb-1 flex items-center gap-1 text-xs text-(--color-foreground-muted)">
-                      <Clock className="h-3 w-3" />
-                      {article.publishedAt ? getTimeAgo(article.publishedAt) : 'Yeni'}
-                    </div>
-                    <CardTitle className="line-clamp-2 text-base leading-tight sm:text-lg">{article.title}</CardTitle>
-                    <CardDescription className="line-clamp-2 text-sm">{article.excerpt || article.title}</CardDescription>
-                  </CardHeader>
-                  <CardFooter className="p-3 pt-0 sm:p-6 sm:pt-0">
-                    <Button asChild variant="ghost" size="sm" className="w-full justify-between text-sm">
-                      <Link href={`/haberler/${article.slug}`}>
-                        Devamını Oku
-                        <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+                  )
+                })
+              })()}
             </div>
           )}
         </div>
+
+        {/* BOTTOM Ad Slots */}
+        {adSlotsByPosition.BOTTOM.length > 0 && (
+          <div className="mb-12">
+            {adSlotsByPosition.BOTTOM.map((slot) => (
+              <NewsAdSlotDisplay key={slot.id} slot={slot} />
+            ))}
+          </div>
+        )}
 
         <div className="mb-12 rounded-xl bg-(--color-muted) p-8">
           <div className="mb-6 text-center">

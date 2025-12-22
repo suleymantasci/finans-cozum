@@ -4,14 +4,16 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart3, FileText, Calendar, Users, TrendingUp, Plus, Loader2, FolderTree } from "lucide-react"
+import { BarChart3, FileText, Calendar, Users, TrendingUp, Plus, Loader2, FolderTree, Calculator, Megaphone } from "lucide-react"
 import { RequireAuth } from "@/components/auth/require-auth"
 import { newsApi, News, NewsStats } from "@/lib/news-api"
 import { categoriesApi, Category } from "@/lib/categories-api"
+import { usersApi, UserStats } from "@/lib/users-api"
 import { toast } from "sonner"
 
 function AdminDashboardPageContent() {
   const [stats, setStats] = useState<NewsStats | null>(null)
+  const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [recentNews, setRecentNews] = useState<News[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -33,11 +35,13 @@ function AdminDashboardPageContent() {
   const loadData = async () => {
     try {
       setIsLoading(true)
-      const [statsData, newsData] = await Promise.all([
+      const [statsData, newsData, userStatsData] = await Promise.all([
         newsApi.getStats(),
         newsApi.getAll(undefined, undefined, 3, 0),
+        usersApi.getStats(),
       ])
       setStats(statsData)
+      setUserStats(userStatsData)
       setRecentNews(newsData.items)
     } catch (error: any) {
       toast.error(error.message || 'Veriler yüklenemedi')
@@ -79,7 +83,7 @@ function AdminDashboardPageContent() {
     {
       title: "Bu Ay Eklenen",
       value: stats?.thisMonth.toString() || "0",
-      change: "+0",
+      change: stats?.thisMonth ? `+${stats.thisMonth}` : "+0",
       icon: TrendingUp,
       trend: "up",
     },
@@ -92,10 +96,10 @@ function AdminDashboardPageContent() {
     },
     {
       title: "Toplam Kullanıcı",
-      value: "1,284",
-      change: "+45",
+      value: userStats?.total.toLocaleString('tr-TR') || "0",
+      change: userStats?.change ? (userStats.change >= 0 ? `+${userStats.change}` : `${userStats.change}`) : "+0",
       icon: Users,
-      trend: "up",
+      trend: userStats?.change && userStats.change >= 0 ? "up" : "down",
     },
   ]
 
@@ -137,7 +141,9 @@ function AdminDashboardPageContent() {
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 {stat.change && (
-                  <p className="text-xs text-green-600">{stat.change}</p>
+                  <p className={`text-xs ${stat.trend === "up" ? "text-green-600" : "text-red-600"}`}>
+                    {stat.change}
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -205,6 +211,24 @@ function AdminDashboardPageContent() {
                 <Link href="/admin/kategoriler">
                   <FolderTree className="mr-3 h-5 w-5" />
                   Kategori Yönetimi
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start bg-transparent" size="lg">
+                <Link href="/admin/araclar">
+                  <Calculator className="mr-3 h-5 w-5" />
+                  Araç Yönetimi
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start bg-transparent" size="lg">
+                <Link href="/admin/reklam-sablonlari">
+                  <Megaphone className="mr-3 h-5 w-5" />
+                  Reklam Şablonları
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start bg-transparent" size="lg">
+                <Link href="/admin/haber-reklamlari">
+                  <Megaphone className="mr-3 h-5 w-5" />
+                  Haber Reklamları
                 </Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-start bg-transparent" size="lg">

@@ -52,3 +52,38 @@ export type Category = Prisma.CategoryModel
  * 
  */
 export type News = Prisma.NewsModel
+/**
+ * Model NewsAdSlot
+ * 
+ */
+export type NewsAdSlot = Prisma.NewsAdSlotModel
+/**
+ * Model ToolCategory
+ * 
+ */
+export type ToolCategory = Prisma.ToolCategoryModel
+/**
+ * Model Tool
+ * 
+ */
+export type Tool = Prisma.ToolModel
+/**
+ * Model AdSlotTemplate
+ * 
+ */
+export type AdSlotTemplate = Prisma.AdSlotTemplateModel
+/**
+ * Model ToolAdSlot
+ * 
+ */
+export type ToolAdSlot = Prisma.ToolAdSlotModel
+/**
+ * Model ToolDataSync
+ * 
+ */
+export type ToolDataSync = Prisma.ToolDataSyncModel
+/**
+ * Model ExternalData
+ * 
+ */
+export type ExternalData = Prisma.ExternalDataModel

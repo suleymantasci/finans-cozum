@@ -86,3 +86,282 @@ model News {
   @@index([slug])
   @@map("news")
 }
+
+// ==================== NEWS ADS SYSTEM ====================
+
+enum NewsAdSlotPosition {
+  TOP           // Liste sayfasının üstünde
+  BETWEEN_NEWS  // Haberler arasında (liste sayfasında)
+  SIDEBAR_LEFT  // Sol sidebar (detay sayfasında)
+  SIDEBAR_RIGHT // Sağ sidebar (detay sayfasında)
+  AFTER_IMAGE   // Görsel sonrası (detay sayfasında)
+  IN_CONTENT    // İçerik içinde (detay sayfasında)
+  BOTTOM        // Sayfanın altında
+}
+
+model NewsAdSlot {
+  id          String            @id @default(uuid())
+  position    NewsAdSlotPosition
+  isActive    Boolean           @default(true)
+  order       Int               @default(0)
+
+  // Reklam içeriği
+  content     String?           @db.Text // HTML/JS reklam kodu
+  scriptUrl   String?           // External script URL
+  imageUrl    String?           // Reklam görseli
+  linkUrl     String?           // Reklam linki
+
+  // Görünürlük ayarları
+  showOnMobile  Boolean         @default(true)
+  showOnTablet  Boolean         @default(true)
+  showOnDesktop Boolean         @default(true)
+
+  // Tarih aralığı
+  startDate   DateTime?
+  endDate     DateTime?
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([position])
+  @@index([isActive])
+  @@map("news_ad_slots")
+}
+
+// ==================== TOOLS SYSTEM ====================
+
+enum ToolStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ToolDataSourceType {
+  STATIC
+  DATABASE
+  EXTERNAL_API
+}
+
+enum AdSlotPosition {
+  TOP
+  SIDEBAR_LEFT
+  SIDEBAR_RIGHT
+  MIDDLE
+  BOTTOM
+  INLINE
+}
+
+enum SyncStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum SyncFrequency {
+  HOURLY
+  DAILY
+  TWICE_DAILY
+  FOUR_TIMES_DAILY
+  CUSTOM
+}
+
+model ToolCategory {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
+  description String? @db.Text
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  tools Tool[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tool_categories")
+}
+
+model Tool {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?    @db.Text
+  status      ToolStatus @default(DRAFT)
+
+  // Component & Display
+  component  String // Component name (e.g., "LoanCalculator", "CurrencyConverter")
+  icon       String? // Lucide icon name
+  color      String? // Theme color
+  bgColor    String? // Background color
+  order      Int     @default(0)
+  isFeatured Boolean @default(false)
+
+  // Data Source Configuration
+  dataSourceType   ToolDataSourceType @default(STATIC)
+  dataSourceConfig Json? // External API config, DB query config, etc.
+
+  // Configuration (JSON)
+  config Json? // Tool-specific config (default values, API endpoints, etc.)
+
+  // SEO & Metadata
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  keywords        String[]
+
+  // Analytics
+  views Int @default(0)
+
+  // Relations
+  categoryId String?
+  category   ToolCategory?  @relation(fields: [categoryId], references: [id])
+  adSlots    ToolAdSlot[]
+  dataSyncs  ToolDataSync[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([dataSourceType])
+  @@map("tools")
+}
+
+model AdSlotTemplate {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String? @db.Text
+
+  position AdSlotPosition
+  isActive Boolean        @default(true)
+
+  // Reklam içeriği
+  content   String? @db.Text
+  scriptUrl String?
+  imageUrl  String?
+  linkUrl   String?
+
+  // Görünürlük ayarları
+  showOnMobile  Boolean @default(true)
+  showOnTablet  Boolean @default(true)
+  showOnDesktop Boolean @default(true)
+
+  // Tarih aralığı
+  startDate DateTime?
+  endDate   DateTime?
+
+  // Relations
+  adSlots ToolAdSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([position])
+  @@index([isActive])
+  @@map("ad_slot_templates")
+}
+
+model ToolAdSlot {
+  id     String  @id @default(uuid())
+  toolId String?
+  tool   Tool?   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  // Ortak reklam şablonu
+  templateId String?
+  template   AdSlotTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  position AdSlotPosition
+  isActive Boolean        @default(true)
+  order    Int            @default(0)
+
+  // Reklam içeriği (Template'den override edilebilir)
+  content   String? @db.Text
+  scriptUrl String?
+  imageUrl  String?
+  linkUrl   String?
+
+  // Görünürlük ayarları
+  showOnMobile  Boolean @default(true)
+  showOnTablet  Boolean @default(true)
+  showOnDesktop Boolean @default(true)
+
+  // Tarih aralığı
+  startDate DateTime?
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([toolId])
+  @@index([templateId])
+  @@index([position])
+  @@index([isActive])
+  @@map("tool_ad_slots")
+}
+
+model ToolDataSync {
+  id     String @id @default(uuid())
+  toolId String
+  tool   Tool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String? @db.Text
+
+  // External API Configuration
+  apiUrl     String
+  apiMethod  String @default("GET")
+  apiHeaders Json?
+  apiBody    Json?
+
+  // Data Processing
+  dataPath        String?
+  transformScript String? @db.Text
+
+  // Scheduling
+  frequency      SyncFrequency @default(DAILY)
+  cronExpression String?
+  timezone       String        @default("Europe/Istanbul")
+
+  // Status & Control
+  isActive   Boolean    @default(true)
+  lastRunAt  DateTime?
+  nextRunAt  DateTime?
+  lastStatus SyncStatus @default(PENDING)
+  lastError  String?    @db.Text
+
+  // Run History
+  runCount     Int @default(0)
+  successCount Int @default(0)
+  failCount    Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  externalData ExternalData[]
+
+  @@index([toolId])
+  @@index([isActive])
+  @@index([nextRunAt])
+  @@map("tool_data_syncs")
+}
+
+model ExternalData {
+  id     String       @id @default(uuid())
+  syncId String
+  sync   ToolDataSync @relation(fields: [syncId], references: [id], onDelete: Cascade)
+
+  // Data
+  data     Json
+  dataHash String?
+
+  // Metadata
+  source    String
+  fetchedAt DateTime @default(now())
+
+  @@index([syncId])
+  @@index([source])
+  @@index([fetchedAt])
+  @@map("external_data")
+}

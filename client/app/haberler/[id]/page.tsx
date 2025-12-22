@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { newsApi, News } from "@/lib/news-api"
 import { categoriesApi, Category } from "@/lib/categories-api"
+import { newsAdsApi, NewsAdSlot } from "@/lib/news-ads-api"
+import { NewsAdSlotDisplay } from "@/components/news/AdSlotDisplay"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
@@ -19,12 +21,23 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   const resolvedParams = use(params)
   const [article, setArticle] = useState<News | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
+  const [adSlots, setAdSlots] = useState<NewsAdSlot[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     loadCategories()
     loadNews()
+    loadAdSlots()
   }, [resolvedParams.id])
+
+  const loadAdSlots = async () => {
+    try {
+      const slots = await newsAdsApi.getActive()
+      setAdSlots(slots)
+    } catch (error) {
+      console.error('Reklam alanları yüklenemedi:', error)
+    }
+  }
 
   const loadCategories = async () => {
     try {
@@ -112,6 +125,15 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     },
   ]
 
+  // Reklam alanlarını pozisyonlara göre grupla
+  const adSlotsByPosition = {
+    SIDEBAR_LEFT: adSlots.filter((slot) => slot.position === 'SIDEBAR_LEFT'),
+    SIDEBAR_RIGHT: adSlots.filter((slot) => slot.position === 'SIDEBAR_RIGHT'),
+    AFTER_IMAGE: adSlots.filter((slot) => slot.position === 'AFTER_IMAGE'),
+    IN_CONTENT: adSlots.filter((slot) => slot.position === 'IN_CONTENT'),
+    BOTTOM: adSlots.filter((slot) => slot.position === 'BOTTOM'),
+  }
+
   return (
     <div className="min-h-screen bg-(--color-background)">
       <div className="container mx-auto px-4 py-8">
@@ -122,8 +144,17 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </Link>
         </Button>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_350px]">
-          <div className="max-w-3xl">
+        <div className="grid gap-8 lg:grid-cols-[280px_1fr_350px]">
+          {/* Sol Sidebar */}
+          {adSlotsByPosition.SIDEBAR_LEFT.length > 0 && (
+            <aside className="space-y-6">
+              {adSlotsByPosition.SIDEBAR_LEFT.map((slot) => (
+                <NewsAdSlotDisplay key={slot.id} slot={slot} />
+              ))}
+            </aside>
+          )}
+
+          <div className={`max-w-4xl ${adSlotsByPosition.SIDEBAR_LEFT.length === 0 ? 'lg:col-start-1' : ''}`}>
             <div className="mb-6">
               <Badge className="mb-4 text-sm">{getCategoryLabel(article)}</Badge>
               <h1 className="mb-6 text-4xl font-bold leading-tight md:text-5xl text-balance">{article.title}</h1>
@@ -175,10 +206,37 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             )}
 
+            {/* AFTER_IMAGE Ad Slots */}
+            {adSlotsByPosition.AFTER_IMAGE.length > 0 && (
+              <div className="mb-8">
+                {adSlotsByPosition.AFTER_IMAGE.map((slot) => (
+                  <NewsAdSlotDisplay key={slot.id} slot={slot} />
+                ))}
+              </div>
+            )}
+
             <div
               className="prose prose-lg max-w-none leading-relaxed dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
+
+            {/* IN_CONTENT Ad Slots - içerik içinde */}
+            {adSlotsByPosition.IN_CONTENT.length > 0 && (
+              <div className="my-8">
+                {adSlotsByPosition.IN_CONTENT.map((slot) => (
+                  <NewsAdSlotDisplay key={slot.id} slot={slot} />
+                ))}
+              </div>
+            )}
+
+            {/* BOTTOM Ad Slots */}
+            {adSlotsByPosition.BOTTOM.length > 0 && (
+              <div className="mt-8">
+                {adSlotsByPosition.BOTTOM.map((slot) => (
+                  <NewsAdSlotDisplay key={slot.id} slot={slot} />
+                ))}
+              </div>
+            )}
 
             {article.tags && article.tags.length > 0 && (
               <div className="mt-10 rounded-lg border bg-(--color-muted) p-6">
@@ -216,9 +274,17 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <aside className="space-y-6">
+            {/* Sağ Sidebar Reklamları - En üstte */}
+            {adSlotsByPosition.SIDEBAR_RIGHT.length > 0 && (
+              <>
+                {adSlotsByPosition.SIDEBAR_RIGHT.map((slot) => (
+                  <NewsAdSlotDisplay key={slot.id} slot={slot} />
+                ))}
+              </>
+            )}
             <div className="rounded-xl border bg-(--color-card) p-6">
               <h3 className="mb-4 text-xl font-bold">Popüler Araçlar</h3>
-              <div className="space-y-3">
+              <div className="space-y-3 flex flex-col">
                 {relatedTools.map((tool) => (
                   <Link key={tool.title} href={tool.href}>
                     <div className="group flex items-center gap-3 rounded-lg border bg-(--color-background) p-3 transition-all hover:border-(--color-primary) hover:shadow-md">

@@ -55,4 +55,12 @@ export class UsersController {
   ) {
     await this.usersService.remove(id, user.id);
   }
+
+  // Admin: Kullanıcı istatistikleri
+  @Get('stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getStats() {
+    return this.usersService.getStats();
+  }
 }

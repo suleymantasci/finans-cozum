@@ -53,7 +53,14 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Category: 'Category',
-  News: 'News'
+  News: 'News',
+  NewsAdSlot: 'NewsAdSlot',
+  ToolCategory: 'ToolCategory',
+  Tool: 'Tool',
+  AdSlotTemplate: 'AdSlotTemplate',
+  ToolAdSlot: 'ToolAdSlot',
+  ToolDataSync: 'ToolDataSync',
+  ExternalData: 'ExternalData'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -128,12 +135,175 @@ export const NewsScalarFieldEnum = {
 export type NewsScalarFieldEnum = (typeof NewsScalarFieldEnum)[keyof typeof NewsScalarFieldEnum]
 
 
+export const NewsAdSlotScalarFieldEnum = {
+  id: 'id',
+  position: 'position',
+  isActive: 'isActive',
+  order: 'order',
+  content: 'content',
+  scriptUrl: 'scriptUrl',
+  imageUrl: 'imageUrl',
+  linkUrl: 'linkUrl',
+  showOnMobile: 'showOnMobile',
+  showOnTablet: 'showOnTablet',
+  showOnDesktop: 'showOnDesktop',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NewsAdSlotScalarFieldEnum = (typeof NewsAdSlotScalarFieldEnum)[keyof typeof NewsAdSlotScalarFieldEnum]
+
+
+export const ToolCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  order: 'order',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolCategoryScalarFieldEnum = (typeof ToolCategoryScalarFieldEnum)[keyof typeof ToolCategoryScalarFieldEnum]
+
+
+export const ToolScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  status: 'status',
+  component: 'component',
+  icon: 'icon',
+  color: 'color',
+  bgColor: 'bgColor',
+  order: 'order',
+  isFeatured: 'isFeatured',
+  dataSourceType: 'dataSourceType',
+  dataSourceConfig: 'dataSourceConfig',
+  config: 'config',
+  metaTitle: 'metaTitle',
+  metaDescription: 'metaDescription',
+  keywords: 'keywords',
+  views: 'views',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolScalarFieldEnum = (typeof ToolScalarFieldEnum)[keyof typeof ToolScalarFieldEnum]
+
+
+export const AdSlotTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  position: 'position',
+  isActive: 'isActive',
+  content: 'content',
+  scriptUrl: 'scriptUrl',
+  imageUrl: 'imageUrl',
+  linkUrl: 'linkUrl',
+  showOnMobile: 'showOnMobile',
+  showOnTablet: 'showOnTablet',
+  showOnDesktop: 'showOnDesktop',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AdSlotTemplateScalarFieldEnum = (typeof AdSlotTemplateScalarFieldEnum)[keyof typeof AdSlotTemplateScalarFieldEnum]
+
+
+export const ToolAdSlotScalarFieldEnum = {
+  id: 'id',
+  toolId: 'toolId',
+  templateId: 'templateId',
+  position: 'position',
+  isActive: 'isActive',
+  order: 'order',
+  content: 'content',
+  scriptUrl: 'scriptUrl',
+  imageUrl: 'imageUrl',
+  linkUrl: 'linkUrl',
+  showOnMobile: 'showOnMobile',
+  showOnTablet: 'showOnTablet',
+  showOnDesktop: 'showOnDesktop',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolAdSlotScalarFieldEnum = (typeof ToolAdSlotScalarFieldEnum)[keyof typeof ToolAdSlotScalarFieldEnum]
+
+
+export const ToolDataSyncScalarFieldEnum = {
+  id: 'id',
+  toolId: 'toolId',
+  name: 'name',
+  description: 'description',
+  apiUrl: 'apiUrl',
+  apiMethod: 'apiMethod',
+  apiHeaders: 'apiHeaders',
+  apiBody: 'apiBody',
+  dataPath: 'dataPath',
+  transformScript: 'transformScript',
+  frequency: 'frequency',
+  cronExpression: 'cronExpression',
+  timezone: 'timezone',
+  isActive: 'isActive',
+  lastRunAt: 'lastRunAt',
+  nextRunAt: 'nextRunAt',
+  lastStatus: 'lastStatus',
+  lastError: 'lastError',
+  runCount: 'runCount',
+  successCount: 'successCount',
+  failCount: 'failCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolDataSyncScalarFieldEnum = (typeof ToolDataSyncScalarFieldEnum)[keyof typeof ToolDataSyncScalarFieldEnum]
+
+
+export const ExternalDataScalarFieldEnum = {
+  id: 'id',
+  syncId: 'syncId',
+  data: 'data',
+  dataHash: 'dataHash',
+  source: 'source',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type ExternalDataScalarFieldEnum = (typeof ExternalDataScalarFieldEnum)[keyof typeof ExternalDataScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull'
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: 'JsonNull'
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -150,4 +320,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull',
+  AnyNull: 'AnyNull'
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
