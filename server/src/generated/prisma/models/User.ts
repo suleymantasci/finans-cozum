@@ -247,6 +247,7 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   news?: Prisma.NewsListRelationFilter
+  favoriteNews?: Prisma.FavoriteNewsListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -264,6 +265,7 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   news?: Prisma.NewsOrderByRelationAggregateInput
+  favoriteNews?: Prisma.FavoriteNewsOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -284,6 +286,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   news?: Prisma.NewsListRelationFilter
+  favoriteNews?: Prisma.FavoriteNewsListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -339,6 +342,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   news?: Prisma.NewsCreateNestedManyWithoutAuthorInput
+  favoriteNews?: Prisma.FavoriteNewsCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -356,6 +360,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   news?: Prisma.NewsUncheckedCreateNestedManyWithoutAuthorInput
+  favoriteNews?: Prisma.FavoriteNewsUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -373,6 +378,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   news?: Prisma.NewsUpdateManyWithoutAuthorNestedInput
+  favoriteNews?: Prisma.FavoriteNewsUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -390,6 +396,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   news?: Prisma.NewsUncheckedUpdateManyWithoutAuthorNestedInput
+  favoriteNews?: Prisma.FavoriteNewsUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -517,6 +524,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type UserCreateNestedOneWithoutFavoriteNewsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFavoriteNewsInput, Prisma.UserUncheckedCreateWithoutFavoriteNewsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFavoriteNewsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutFavoriteNewsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFavoriteNewsInput, Prisma.UserUncheckedCreateWithoutFavoriteNewsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFavoriteNewsInput
+  upsert?: Prisma.UserUpsertWithoutFavoriteNewsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFavoriteNewsInput, Prisma.UserUpdateWithoutFavoriteNewsInput>, Prisma.UserUncheckedUpdateWithoutFavoriteNewsInput>
+}
+
 export type UserCreateNestedOneWithoutNewsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutNewsInput, Prisma.UserUncheckedCreateWithoutNewsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutNewsInput
@@ -529,6 +550,90 @@ export type UserUpdateOneRequiredWithoutNewsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutNewsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNewsInput, Prisma.UserUpdateWithoutNewsInput>, Prisma.UserUncheckedUpdateWithoutNewsInput>
+}
+
+export type UserCreateWithoutFavoriteNewsInput = {
+  id?: string
+  email: string
+  password: string
+  name?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isActive?: boolean
+  emailVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  news?: Prisma.NewsCreateNestedManyWithoutAuthorInput
+}
+
+export type UserUncheckedCreateWithoutFavoriteNewsInput = {
+  id?: string
+  email: string
+  password: string
+  name?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isActive?: boolean
+  emailVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  news?: Prisma.NewsUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutFavoriteNewsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutFavoriteNewsInput, Prisma.UserUncheckedCreateWithoutFavoriteNewsInput>
+}
+
+export type UserUpsertWithoutFavoriteNewsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutFavoriteNewsInput, Prisma.UserUncheckedUpdateWithoutFavoriteNewsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutFavoriteNewsInput, Prisma.UserUncheckedCreateWithoutFavoriteNewsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutFavoriteNewsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutFavoriteNewsInput, Prisma.UserUncheckedUpdateWithoutFavoriteNewsInput>
+}
+
+export type UserUpdateWithoutFavoriteNewsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  news?: Prisma.NewsUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutFavoriteNewsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  news?: Prisma.NewsUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutNewsInput = {
@@ -545,6 +650,7 @@ export type UserCreateWithoutNewsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  favoriteNews?: Prisma.FavoriteNewsCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNewsInput = {
@@ -561,6 +667,7 @@ export type UserUncheckedCreateWithoutNewsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  favoriteNews?: Prisma.FavoriteNewsUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNewsInput = {
@@ -593,6 +700,7 @@ export type UserUpdateWithoutNewsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  favoriteNews?: Prisma.FavoriteNewsUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNewsInput = {
@@ -609,6 +717,7 @@ export type UserUncheckedUpdateWithoutNewsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  favoriteNews?: Prisma.FavoriteNewsUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -618,10 +727,12 @@ export type UserUncheckedUpdateWithoutNewsInput = {
 
 export type UserCountOutputType = {
   news: number
+  favoriteNews: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   news?: boolean | UserCountOutputTypeCountNewsArgs
+  favoriteNews?: boolean | UserCountOutputTypeCountFavoriteNewsArgs
 }
 
 /**
@@ -641,6 +752,13 @@ export type UserCountOutputTypeCountNewsArgs<ExtArgs extends runtime.Types.Exten
   where?: Prisma.NewsWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountFavoriteNewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FavoriteNewsWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -657,6 +775,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   news?: boolean | Prisma.User$newsArgs<ExtArgs>
+  favoriteNews?: boolean | Prisma.User$favoriteNewsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -711,6 +830,7 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "name" | "firstName" | "lastName" | "phone" | "birthDate" | "role" | "isActive" | "emailVerified" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   news?: boolean | Prisma.User$newsArgs<ExtArgs>
+  favoriteNews?: boolean | Prisma.User$favoriteNewsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -720,6 +840,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     news: Prisma.$NewsPayload<ExtArgs>[]
+    favoriteNews: Prisma.$FavoriteNewsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1130,6 +1251,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   news<T extends Prisma.User$newsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$newsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NewsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  favoriteNews<T extends Prisma.User$favoriteNewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$favoriteNewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoriteNewsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1581,6 +1703,30 @@ export type User$newsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   take?: number
   skip?: number
   distinct?: Prisma.NewsScalarFieldEnum | Prisma.NewsScalarFieldEnum[]
+}
+
+/**
+ * User.favoriteNews
+ */
+export type User$favoriteNewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FavoriteNews
+   */
+  select?: Prisma.FavoriteNewsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FavoriteNews
+   */
+  omit?: Prisma.FavoriteNewsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FavoriteNewsInclude<ExtArgs> | null
+  where?: Prisma.FavoriteNewsWhereInput
+  orderBy?: Prisma.FavoriteNewsOrderByWithRelationInput | Prisma.FavoriteNewsOrderByWithRelationInput[]
+  cursor?: Prisma.FavoriteNewsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FavoriteNewsScalarFieldEnum | Prisma.FavoriteNewsScalarFieldEnum[]
 }
 
 /**

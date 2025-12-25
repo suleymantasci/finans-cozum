@@ -310,6 +310,7 @@ export type NewsWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"News"> | Date | string
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  favoriteBy?: Prisma.FavoriteNewsListRelationFilter
 }
 
 export type NewsOrderByWithRelationInput = {
@@ -332,6 +333,7 @@ export type NewsOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   category?: Prisma.CategoryOrderByWithRelationInput
   author?: Prisma.UserOrderByWithRelationInput
+  favoriteBy?: Prisma.FavoriteNewsOrderByRelationAggregateInput
 }
 
 export type NewsWhereUniqueInput = Prisma.AtLeast<{
@@ -357,6 +359,7 @@ export type NewsWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"News"> | Date | string
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  favoriteBy?: Prisma.FavoriteNewsListRelationFilter
 }, "id" | "slug">
 
 export type NewsOrderByWithAggregationInput = {
@@ -425,6 +428,7 @@ export type NewsCreateInput = {
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutNewsInput
   author: Prisma.UserCreateNestedOneWithoutNewsInput
+  favoriteBy?: Prisma.FavoriteNewsCreateNestedManyWithoutNewsInput
 }
 
 export type NewsUncheckedCreateInput = {
@@ -445,6 +449,7 @@ export type NewsUncheckedCreateInput = {
   scheduledAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  favoriteBy?: Prisma.FavoriteNewsUncheckedCreateNestedManyWithoutNewsInput
 }
 
 export type NewsUpdateInput = {
@@ -465,6 +470,7 @@ export type NewsUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutNewsNestedInput
   author?: Prisma.UserUpdateOneRequiredWithoutNewsNestedInput
+  favoriteBy?: Prisma.FavoriteNewsUpdateManyWithoutNewsNestedInput
 }
 
 export type NewsUncheckedUpdateInput = {
@@ -485,6 +491,7 @@ export type NewsUncheckedUpdateInput = {
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  favoriteBy?: Prisma.FavoriteNewsUncheckedUpdateManyWithoutNewsNestedInput
 }
 
 export type NewsCreateManyInput = {
@@ -553,6 +560,11 @@ export type NewsListRelationFilter = {
 
 export type NewsOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type NewsScalarRelationFilter = {
+  is?: Prisma.NewsWhereInput
+  isNot?: Prisma.NewsWhereInput
 }
 
 export type StringNullableListFilter<$PrismaModel = never> = {
@@ -671,6 +683,20 @@ export type NewsUncheckedUpdateManyWithoutAuthorNestedInput = {
   deleteMany?: Prisma.NewsScalarWhereInput | Prisma.NewsScalarWhereInput[]
 }
 
+export type NewsCreateNestedOneWithoutFavoriteByInput = {
+  create?: Prisma.XOR<Prisma.NewsCreateWithoutFavoriteByInput, Prisma.NewsUncheckedCreateWithoutFavoriteByInput>
+  connectOrCreate?: Prisma.NewsCreateOrConnectWithoutFavoriteByInput
+  connect?: Prisma.NewsWhereUniqueInput
+}
+
+export type NewsUpdateOneRequiredWithoutFavoriteByNestedInput = {
+  create?: Prisma.XOR<Prisma.NewsCreateWithoutFavoriteByInput, Prisma.NewsUncheckedCreateWithoutFavoriteByInput>
+  connectOrCreate?: Prisma.NewsCreateOrConnectWithoutFavoriteByInput
+  upsert?: Prisma.NewsUpsertWithoutFavoriteByInput
+  connect?: Prisma.NewsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.NewsUpdateToOneWithWhereWithoutFavoriteByInput, Prisma.NewsUpdateWithoutFavoriteByInput>, Prisma.NewsUncheckedUpdateWithoutFavoriteByInput>
+}
+
 export type NewsCreateNestedManyWithoutCategoryInput = {
   create?: Prisma.XOR<Prisma.NewsCreateWithoutCategoryInput, Prisma.NewsUncheckedCreateWithoutCategoryInput> | Prisma.NewsCreateWithoutCategoryInput[] | Prisma.NewsUncheckedCreateWithoutCategoryInput[]
   connectOrCreate?: Prisma.NewsCreateOrConnectWithoutCategoryInput | Prisma.NewsCreateOrConnectWithoutCategoryInput[]
@@ -743,6 +769,7 @@ export type NewsCreateWithoutAuthorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutNewsInput
+  favoriteBy?: Prisma.FavoriteNewsCreateNestedManyWithoutNewsInput
 }
 
 export type NewsUncheckedCreateWithoutAuthorInput = {
@@ -762,6 +789,7 @@ export type NewsUncheckedCreateWithoutAuthorInput = {
   scheduledAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  favoriteBy?: Prisma.FavoriteNewsUncheckedCreateNestedManyWithoutNewsInput
 }
 
 export type NewsCreateOrConnectWithoutAuthorInput = {
@@ -813,6 +841,102 @@ export type NewsScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"News"> | Date | string
 }
 
+export type NewsCreateWithoutFavoriteByInput = {
+  id?: string
+  title: string
+  slug: string
+  excerpt?: string | null
+  content: string
+  status?: $Enums.NewsStatus
+  featuredImage?: string | null
+  tags?: Prisma.NewsCreatetagsInput | string[]
+  metaTitle?: string | null
+  metaDescription?: string | null
+  views?: number
+  publishedAt?: Date | string | null
+  scheduledAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  category: Prisma.CategoryCreateNestedOneWithoutNewsInput
+  author: Prisma.UserCreateNestedOneWithoutNewsInput
+}
+
+export type NewsUncheckedCreateWithoutFavoriteByInput = {
+  id?: string
+  title: string
+  slug: string
+  excerpt?: string | null
+  content: string
+  categoryId: string
+  status?: $Enums.NewsStatus
+  featuredImage?: string | null
+  authorId: string
+  tags?: Prisma.NewsCreatetagsInput | string[]
+  metaTitle?: string | null
+  metaDescription?: string | null
+  views?: number
+  publishedAt?: Date | string | null
+  scheduledAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type NewsCreateOrConnectWithoutFavoriteByInput = {
+  where: Prisma.NewsWhereUniqueInput
+  create: Prisma.XOR<Prisma.NewsCreateWithoutFavoriteByInput, Prisma.NewsUncheckedCreateWithoutFavoriteByInput>
+}
+
+export type NewsUpsertWithoutFavoriteByInput = {
+  update: Prisma.XOR<Prisma.NewsUpdateWithoutFavoriteByInput, Prisma.NewsUncheckedUpdateWithoutFavoriteByInput>
+  create: Prisma.XOR<Prisma.NewsCreateWithoutFavoriteByInput, Prisma.NewsUncheckedCreateWithoutFavoriteByInput>
+  where?: Prisma.NewsWhereInput
+}
+
+export type NewsUpdateToOneWithWhereWithoutFavoriteByInput = {
+  where?: Prisma.NewsWhereInput
+  data: Prisma.XOR<Prisma.NewsUpdateWithoutFavoriteByInput, Prisma.NewsUncheckedUpdateWithoutFavoriteByInput>
+}
+
+export type NewsUpdateWithoutFavoriteByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumNewsStatusFieldUpdateOperationsInput | $Enums.NewsStatus
+  featuredImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.NewsUpdatetagsInput | string[]
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.CategoryUpdateOneRequiredWithoutNewsNestedInput
+  author?: Prisma.UserUpdateOneRequiredWithoutNewsNestedInput
+}
+
+export type NewsUncheckedUpdateWithoutFavoriteByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  excerpt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumNewsStatusFieldUpdateOperationsInput | $Enums.NewsStatus
+  featuredImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authorId?: Prisma.StringFieldUpdateOperationsInput | string
+  tags?: Prisma.NewsUpdatetagsInput | string[]
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type NewsCreateWithoutCategoryInput = {
   id?: string
   title: string
@@ -830,6 +954,7 @@ export type NewsCreateWithoutCategoryInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   author: Prisma.UserCreateNestedOneWithoutNewsInput
+  favoriteBy?: Prisma.FavoriteNewsCreateNestedManyWithoutNewsInput
 }
 
 export type NewsUncheckedCreateWithoutCategoryInput = {
@@ -849,6 +974,7 @@ export type NewsUncheckedCreateWithoutCategoryInput = {
   scheduledAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  favoriteBy?: Prisma.FavoriteNewsUncheckedCreateNestedManyWithoutNewsInput
 }
 
 export type NewsCreateOrConnectWithoutCategoryInput = {
@@ -913,6 +1039,7 @@ export type NewsUpdateWithoutAuthorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutNewsNestedInput
+  favoriteBy?: Prisma.FavoriteNewsUpdateManyWithoutNewsNestedInput
 }
 
 export type NewsUncheckedUpdateWithoutAuthorInput = {
@@ -932,6 +1059,7 @@ export type NewsUncheckedUpdateWithoutAuthorInput = {
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  favoriteBy?: Prisma.FavoriteNewsUncheckedUpdateManyWithoutNewsNestedInput
 }
 
 export type NewsUncheckedUpdateManyWithoutAuthorInput = {
@@ -989,6 +1117,7 @@ export type NewsUpdateWithoutCategoryInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneRequiredWithoutNewsNestedInput
+  favoriteBy?: Prisma.FavoriteNewsUpdateManyWithoutNewsNestedInput
 }
 
 export type NewsUncheckedUpdateWithoutCategoryInput = {
@@ -1008,6 +1137,7 @@ export type NewsUncheckedUpdateWithoutCategoryInput = {
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  favoriteBy?: Prisma.FavoriteNewsUncheckedUpdateManyWithoutNewsNestedInput
 }
 
 export type NewsUncheckedUpdateManyWithoutCategoryInput = {
@@ -1030,6 +1160,35 @@ export type NewsUncheckedUpdateManyWithoutCategoryInput = {
 }
 
 
+/**
+ * Count Type NewsCountOutputType
+ */
+
+export type NewsCountOutputType = {
+  favoriteBy: number
+}
+
+export type NewsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  favoriteBy?: boolean | NewsCountOutputTypeCountFavoriteByArgs
+}
+
+/**
+ * NewsCountOutputType without action
+ */
+export type NewsCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NewsCountOutputType
+   */
+  select?: Prisma.NewsCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * NewsCountOutputType without action
+ */
+export type NewsCountOutputTypeCountFavoriteByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FavoriteNewsWhereInput
+}
+
 
 export type NewsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1051,6 +1210,8 @@ export type NewsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  favoriteBy?: boolean | Prisma.News$favoriteByArgs<ExtArgs>
+  _count?: boolean | Prisma.NewsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["news"]>
 
 export type NewsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1121,6 +1282,8 @@ export type NewsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type NewsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  favoriteBy?: boolean | Prisma.News$favoriteByArgs<ExtArgs>
+  _count?: boolean | Prisma.NewsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type NewsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
@@ -1136,6 +1299,7 @@ export type $NewsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     category: Prisma.$CategoryPayload<ExtArgs>
     author: Prisma.$UserPayload<ExtArgs>
+    favoriteBy: Prisma.$FavoriteNewsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1551,6 +1715,7 @@ export interface Prisma__NewsClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   category<T extends Prisma.CategoryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CategoryDefaultArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   author<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  favoriteBy<T extends Prisma.News$favoriteByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.News$favoriteByArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoriteNewsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1990,6 +2155,30 @@ export type NewsDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many News to delete.
    */
   limit?: number
+}
+
+/**
+ * News.favoriteBy
+ */
+export type News$favoriteByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FavoriteNews
+   */
+  select?: Prisma.FavoriteNewsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FavoriteNews
+   */
+  omit?: Prisma.FavoriteNewsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FavoriteNewsInclude<ExtArgs> | null
+  where?: Prisma.FavoriteNewsWhereInput
+  orderBy?: Prisma.FavoriteNewsOrderByWithRelationInput | Prisma.FavoriteNewsOrderByWithRelationInput[]
+  cursor?: Prisma.FavoriteNewsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FavoriteNewsScalarFieldEnum | Prisma.FavoriteNewsScalarFieldEnum[]
 }
 
 /**

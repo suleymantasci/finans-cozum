@@ -30,9 +30,24 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  news News[]
+  news          News[]
+  favoriteNews  FavoriteNews[]
 
   @@map("users")
+}
+
+model FavoriteNews {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsId    String
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, newsId])
+  @@index([userId])
+  @@index([newsId])
+  @@map("favorite_news")
 }
 
 enum NewsStatus {
@@ -78,6 +93,8 @@ model News {
   scheduledAt     DateTime?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
+
+  favoriteBy      FavoriteNews[]
 
   @@index([categoryId])
   @@index([status])

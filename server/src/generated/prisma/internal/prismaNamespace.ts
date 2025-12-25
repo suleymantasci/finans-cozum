@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  FavoriteNews: 'FavoriteNews',
   Category: 'Category',
   News: 'News',
   NewsAdSlot: 'NewsAdSlot',
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData"
+    modelProps: "user" | "favoriteNews" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -486,6 +487,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    FavoriteNews: {
+      payload: Prisma.$FavoriteNewsPayload<ExtArgs>
+      fields: Prisma.FavoriteNewsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FavoriteNewsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FavoriteNewsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>
+        }
+        findFirst: {
+          args: Prisma.FavoriteNewsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FavoriteNewsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>
+        }
+        findMany: {
+          args: Prisma.FavoriteNewsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>[]
+        }
+        create: {
+          args: Prisma.FavoriteNewsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>
+        }
+        createMany: {
+          args: Prisma.FavoriteNewsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FavoriteNewsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>[]
+        }
+        delete: {
+          args: Prisma.FavoriteNewsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>
+        }
+        update: {
+          args: Prisma.FavoriteNewsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>
+        }
+        deleteMany: {
+          args: Prisma.FavoriteNewsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FavoriteNewsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FavoriteNewsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>[]
+        }
+        upsert: {
+          args: Prisma.FavoriteNewsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNewsPayload>
+        }
+        aggregate: {
+          args: Prisma.FavoriteNewsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFavoriteNews>
+        }
+        groupBy: {
+          args: Prisma.FavoriteNewsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteNewsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FavoriteNewsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteNewsCountAggregateOutputType> | number
         }
       }
     }
@@ -1361,6 +1436,16 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const FavoriteNewsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  newsId: 'newsId',
+  createdAt: 'createdAt'
+} as const
+
+export type FavoriteNewsScalarFieldEnum = (typeof FavoriteNewsScalarFieldEnum)[keyof typeof FavoriteNewsScalarFieldEnum]
+
+
 export const CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1919,6 +2004,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  favoriteNews?: Prisma.FavoriteNewsOmit
   category?: Prisma.CategoryOmit
   news?: Prisma.NewsOmit
   newsAdSlot?: Prisma.NewsAdSlotOmit

@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
 import { NewsModule } from './news/news.module';
+import { FavoriteNewsModule } from './favorite-news/favorite-news.module';
 import { FilesModule } from './files/files.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ToolCategoriesModule } from './tool-categories/tool-categories.module';
@@ -38,6 +39,7 @@ import { MarketDataModule } from './market-data/market-data.module';
     NewsAdSlotsModule,
     CacheModule,
     MarketDataModule,
+    FavoriteNewsModule,
   ],
 })
 export class AppModule {}

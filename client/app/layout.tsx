@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { AuthProviderWrapper } from "@/components/auth-provider-wrapper"
+import { Toaster } from "sonner"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -99,6 +100,7 @@ export default function RootLayout({
             </div>
           </AuthProviderWrapper>
         </ThemeProvider>
+        <Toaster position="top-right" richColors />
         <Analytics />
       </body>
     </html>

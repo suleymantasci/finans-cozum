@@ -16,15 +16,20 @@ import { NewsAdSlotDisplay } from "@/components/news/AdSlotDisplay"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { marketApi, MarketDataItem } from "@/lib/market-api"
+import { favoriteNewsApi } from "@/lib/favorite-news-api"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const resolvedParams = use(params)
+  const { user, isAuthenticated } = useAuth()
   const [article, setArticle] = useState<News | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [adSlots, setAdSlots] = useState<NewsAdSlot[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [marketData, setMarketData] = useState<MarketDataItem[]>([])
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
 
   useEffect(() => {
     loadCategories()
@@ -98,6 +103,61 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     if (!item) return '--'
     const sign = item.changePercent >= 0 ? '+' : ''
     return `${sign}${item.changePercent.toFixed(2)}%`
+  }
+
+  const checkFavoriteStatus = async (newsId: string) => {
+    // Kullanıcı giriş yapmamışsa kontrol etme
+    if (!isAuthenticated) {
+      setIsFavorite(false)
+      return
+    }
+
+    try {
+      const response = await favoriteNewsApi.checkFavorite(newsId)
+      setIsFavorite(response.isFavorite)
+    } catch (error) {
+      // Kullanıcı giriş yapmamış olabilir, sessizce geç
+      setIsFavorite(false)
+    }
+  }
+
+  const handleToggleFavorite = async () => {
+    console.log('handleToggleFavorite called', { isAuthenticated, hasArticle: !!article })
+    
+    if (!article) return
+    
+    // Kullanıcı giriş yapmamışsa toast göster ve işlem yapma
+    if (!isAuthenticated) {
+
+      toast.error('Favorilere eklemek için giriş yapmanız gerekiyor', {
+        action: {
+          label: 'Giriş Yap',
+          onClick: () => {
+            router.push('/giris')
+          },
+        },
+        duration: 5000,
+      })
+      
+      return
+    }
+    
+    setIsFavoriteLoading(true)
+    try {
+      if (isFavorite) {
+        await favoriteNewsApi.removeFavorite(article.id)
+        setIsFavorite(false)
+        toast.success('Haber favorilerden kaldırıldı')
+      } else {
+        await favoriteNewsApi.addFavorite(article.id)
+        setIsFavorite(true)
+        toast.success('Haber favorilere eklendi')
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Bir hata oluştu')
+    } finally {
+      setIsFavoriteLoading(false)
+    }
   }
 
   const getCategoryLabel = (item: News) => {
@@ -208,9 +268,14 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 </div>
                 <div className="ml-auto flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Bookmark className="mr-2 h-4 w-4" />
-                    Kaydet
+                  <Button 
+                    variant={isFavorite ? "default" : "outline"} 
+                    size="sm"
+                    onClick={handleToggleFavorite}
+                    disabled={isFavoriteLoading}
+                  >
+                    <Bookmark className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                    {isFavorite ? "Kaydedildi" : "Kaydet"}
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -284,9 +349,14 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="outline" size="sm">
-                    <Bookmark className="mr-2 h-4 w-4" />
-                    Kaydet
+                  <Button 
+                    variant={isFavorite ? "default" : "outline"} 
+                    size="sm"
+                    onClick={handleToggleFavorite}
+                    disabled={isFavoriteLoading}
+                  >
+                    <Bookmark className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                    {isFavorite ? "Kaydedildi" : "Kaydet"}
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -11,6 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { RequireAuth } from "@/components/auth/require-auth"
 import { useAuth } from "@/contexts/auth-context"
+import { favoriteNewsApi } from "@/lib/favorite-news-api"
+import { newsApi, News } from "@/lib/news-api"
+import { useEffect } from "react"
+import { formatDistanceToNow } from "date-fns"
+import { tr } from "date-fns/locale"
 
 function ProfilPageContent() {
   const [isEditing, setIsEditing] = useState(false)
@@ -19,30 +24,51 @@ function ProfilPageContent() {
     email: "ahmet.yilmaz@example.com",
     phone: "+90 532 123 45 67",
   })
+  const [savedNews, setSavedNews] = useState<News[]>([])
+  const [isLoadingNews, setIsLoadingNews] = useState(true)
 
-  const savedNews = [
-    {
-      id: 1,
-      title: "Merkez Bankası Faiz Kararı Açıklandı",
-      category: "Ekonomi",
-      date: "18 Ara 2024",
-      image: "/central-bank-building.jpg",
-    },
-    {
-      id: 2,
-      title: "Dolar Kuru Yeni Rekor Kırdı",
-      category: "Döviz",
-      date: "17 Ara 2024",
-      image: "/stock-market.jpg",
-    },
-    {
-      id: 3,
-      title: "Altın Fiyatları Yükselişte",
-      category: "Emtia",
-      date: "16 Ara 2024",
-      image: "/gold-bars.jpg",
-    },
-  ]
+  useEffect(() => {
+    loadFavoriteNews()
+  }, [])
+
+  const loadFavoriteNews = async () => {
+    try {
+      setIsLoadingNews(true)
+      const news = await favoriteNewsApi.getFavorites()
+      setSavedNews(news)
+    } catch (error) {
+      console.error('Favori haberler yüklenemedi:', error)
+    } finally {
+      setIsLoadingNews(false)
+    }
+  }
+
+  const handleRemoveFavorite = async (newsId: string) => {
+    try {
+      await favoriteNewsApi.removeFavorite(newsId)
+      setSavedNews(savedNews.filter(n => n.id !== newsId))
+      // toast.success('Haber favorilerden kaldırıldı')
+    } catch (error) {
+      console.error('Haber favorilerden kaldırılamadı:', error)
+    }
+  }
+
+  const formatTimeAgo = (date: string | Date | undefined) => {
+    if (!date) return '--'
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date
+      return formatDistanceToNow(dateObj, { addSuffix: true, locale: tr })
+    } catch {
+      return '--'
+    }
+  }
+
+  const getCategoryLabel = (item: News) => {
+    if (item.category && typeof item.category === 'object' && 'name' in item.category) {
+      return item.category.name
+    }
+    return 'Genel'
+  }
 
   const followedEconomicEvents = [
     {
@@ -209,29 +235,52 @@ function ProfilPageContent() {
                     <CardDescription>Kaydettiğiniz haberler burada görünür</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {savedNews.map((news) => (
-                        <Link key={news.id} href={`/haberler/${news.id}`}>
-                          <div className="group flex gap-4 rounded-lg border p-4 transition-all hover:border-(--color-primary) hover:shadow-md">
-                            <img
-                              src={news.image || "/placeholder.svg"}
-                              alt={news.title}
-                              className="h-20 w-20 rounded-lg object-cover"
-                            />
-                            <div className="flex-1">
-                              <Badge variant="secondary" className="mb-2 text-xs">
-                                {news.category}
-                              </Badge>
-                              <h3 className="mb-1 font-semibold group-hover:text-(--color-primary)">{news.title}</h3>
-                              <p className="text-sm text-(--color-foreground-muted)">{news.date}</p>
-                            </div>
-                            <Button variant="ghost" size="icon" className="shrink-0">
+                    {isLoadingNews ? (
+                      <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+                        Yükleniyor...
+                      </div>
+                    ) : savedNews.length === 0 ? (
+                      <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+                        Henüz favori haber yok. Haberleri kaydetmek için haber detay sayfasındaki "Kaydet" butonunu kullanın.
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {savedNews.map((news) => (
+                          <div key={news.id} className="group flex gap-4 rounded-lg border p-4 transition-all hover:border-(--color-primary) hover:shadow-md">
+                            <Link href={`/haberler/${news.slug || news.id}`} className="flex-1 flex gap-4">
+                              {news.featuredImage ? (
+                                <img
+                                  src={news.featuredImage}
+                                  alt={news.title}
+                                  className="h-20 w-20 rounded-lg object-cover shrink-0"
+                                />
+                              ) : (
+                                <div className="h-20 w-20 rounded-lg bg-(--color-muted) shrink-0 flex items-center justify-center">
+                                  <span className="text-xs text-(--color-foreground-muted)">Görsel Yok</span>
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <Badge variant="secondary" className="mb-2 text-xs">
+                                  {getCategoryLabel(news)}
+                                </Badge>
+                                <h3 className="mb-1 font-semibold group-hover:text-(--color-primary) line-clamp-2">{news.title}</h3>
+                                <p className="text-sm text-(--color-foreground-muted)">
+                                  {formatTimeAgo(news.publishedAt || news.createdAt)}
+                                </p>
+                              </div>
+                            </Link>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="shrink-0"
+                              onClick={() => handleRemoveFavorite(news.id)}
+                            >
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
-                        </Link>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
