@@ -87,3 +87,13 @@ export type ToolDataSync = Prisma.ToolDataSyncModel
  * 
  */
 export type ExternalData = Prisma.ExternalDataModel
+/**
+ * Model BistDailyData
+ * 
+ */
+export type BistDailyData = Prisma.BistDailyDataModel
+/**
+ * Model TcmbDailyData
+ * 
+ */
+export type TcmbDailyData = Prisma.TcmbDailyDataModel

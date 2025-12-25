@@ -1,12 +1,16 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, Star, Bell, Share2, TrendingUp, TrendingDown, Calendar } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowLeft, Star, Bell, Share2, TrendingUp, TrendingDown, Calendar, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { marketApi, MarketDetailResponse } from "@/lib/market-api"
+import { toast } from "sonner"
+import { PriceChart } from "@/components/markets/PriceChart"
+import { RelatedMarkets } from "@/components/markets/RelatedMarkets"
 
 interface MarketDetailClientProps {
   symbol: string
@@ -16,24 +20,63 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
   const [timeRange, setTimeRange] = useState("1D")
   const [isFavorite, setIsFavorite] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
+  const [marketData, setMarketData] = useState<MarketDetailResponse | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Mock data - gerçek uygulamada API'den gelecek
-  const marketData = {
-    symbol: symbol.replace(/-/g, "/").toUpperCase(),
-    name: "Amerikan Doları / Türk Lirası",
-    currentPrice: 38.4825,
-    change: 0.0518,
-    changePercent: 0.13,
-    open: 38.4306,
-    high: 38.6724,
-    low: 38.4683,
-    prevClose: 38.4307,
-    volume: 1234567890,
-    marketCap: "2.3T",
-    high52w: 41.2164,
-    low52w: 31.9308,
-    type: "Döviz",
-    category: "Majör Parite",
+  useEffect(() => {
+    loadMarketData()
+    
+    // Her 30 saniyede bir güncelle
+    const interval = setInterval(loadMarketData, 30000)
+    
+    return () => clearInterval(interval)
+  }, [symbol])
+
+  const loadMarketData = async () => {
+    try {
+      setLoading(true)
+      const data = await marketApi.getMarketDetail(symbol)
+      if (data) {
+        setMarketData(data)
+      } else {
+        toast.error('Piyasa verisi bulunamadı')
+      }
+    } catch (error: any) {
+      console.error('Market detay verisi yüklenemedi:', error)
+      toast.error('Piyasa verisi yüklenemedi')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading && !marketData) {
+    return (
+      <div className="min-h-screen bg-background py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!marketData) {
+    return (
+      <div className="min-h-screen bg-background py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-16">
+            <h1 className="text-2xl font-bold mb-4">Piyasa Verisi Bulunamadı</h1>
+            <Link href="/piyasalar">
+              <Button>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Piyasalara Dön
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const technicalIndicators = [
@@ -45,11 +88,7 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
     { name: "Stochastic", value: "68.45", signal: "Nötr" },
   ]
 
-  const relatedMarkets = [
-    { symbol: "EUR/TRY", name: "Euro / Türk Lirası", price: 42.15, change: 0.25 },
-    { symbol: "GBP/TRY", name: "İngiliz Sterlini / Türk Lirası", price: 48.32, change: -0.18 },
-    { symbol: "USD/EUR", name: "Amerikan Doları / Euro", price: 0.91, change: 0.12 },
-  ]
+  // RelatedMarkets component'i kullanılacak, bu mock data kaldırıldı
 
   const news = [
     {
@@ -122,7 +161,10 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-end gap-4 mb-6">
-                  <div className="text-5xl font-bold">₺{marketData.currentPrice.toFixed(4)}</div>
+                  <div className="text-5xl font-bold">
+                    {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
+                    {marketData.currentPrice.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                  </div>
                   <div className="flex items-center gap-2 mb-2">
                     {marketData.changePercent > 0 ? (
                       <TrendingUp className="h-6 w-6 text-success" />
@@ -135,8 +177,8 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                       }`}
                     >
                       {marketData.change > 0 ? "+" : ""}
-                      {marketData.change.toFixed(4)} ({marketData.changePercent > 0 ? "+" : ""}
-                      {marketData.changePercent}%)
+                      {marketData.change.toFixed(marketData.type === 'Döviz' ? 4 : 2)} ({marketData.changePercent > 0 ? "+" : ""}
+                      {marketData.changePercent.toFixed(2)}%)
                     </span>
                   </div>
                 </div>
@@ -145,19 +187,19 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <div className="text-muted-foreground mb-1">Açılış</div>
-                    <div className="font-semibold">{marketData.open.toFixed(4)}</div>
+                    <div className="font-semibold">{marketData.open.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground mb-1">Yüksek</div>
-                    <div className="font-semibold text-success">{marketData.high.toFixed(4)}</div>
+                    <div className="font-semibold text-success">{marketData.high.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground mb-1">Düşük</div>
-                    <div className="font-semibold text-destructive">{marketData.low.toFixed(4)}</div>
+                    <div className="font-semibold text-destructive">{marketData.low.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground mb-1">Ö. Kapanış</div>
-                    <div className="font-semibold">{marketData.prevClose.toFixed(4)}</div>
+                    <div className="font-semibold">{marketData.prevClose.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
                   </div>
                 </div>
               </CardContent>
@@ -183,14 +225,12 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Grafik için placeholder */}
-                <div className="w-full h-[400px] bg-muted/30 rounded-lg flex items-center justify-center">
-                  <div className="text-center space-y-2">
-                    <Calendar className="h-12 w-12 mx-auto text-muted-foreground" />
-                    <p className="text-muted-foreground">Grafik yükleniyor...</p>
-                    <p className="text-sm text-muted-foreground">Zaman aralığı: {timeRange}</p>
-                  </div>
-                </div>
+                <PriceChart
+                  symbol={symbol}
+                  timeRange={timeRange}
+                  currentPrice={marketData.currentPrice}
+                  isUp={marketData.changePercent >= 0}
+                />
               </CardContent>
             </Card>
 
@@ -270,22 +310,30 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                         <div className="text-sm text-muted-foreground mb-1">Kategori</div>
                         <div className="font-medium">{marketData.category}</div>
                       </div>
-                      <div className="py-3 border-b">
-                        <div className="text-sm text-muted-foreground mb-1">52 Hafta Yüksek</div>
-                        <div className="font-medium text-success">{marketData.high52w}</div>
-                      </div>
-                      <div className="py-3 border-b">
-                        <div className="text-sm text-muted-foreground mb-1">52 Hafta Düşük</div>
-                        <div className="font-medium text-destructive">{marketData.low52w}</div>
-                      </div>
-                      <div className="py-3 border-b">
-                        <div className="text-sm text-muted-foreground mb-1">Günlük Hacim</div>
-                        <div className="font-medium">{marketData.volume.toLocaleString()}</div>
-                      </div>
-                      <div className="py-3 border-b">
-                        <div className="text-sm text-muted-foreground mb-1">Piyasa Değeri</div>
-                        <div className="font-medium">{marketData.marketCap}</div>
-                      </div>
+                      {marketData.high52w && (
+                        <div className="py-3 border-b">
+                          <div className="text-sm text-muted-foreground mb-1">52 Hafta Yüksek</div>
+                          <div className="font-medium text-success">{marketData.high52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}</div>
+                        </div>
+                      )}
+                      {marketData.low52w && (
+                        <div className="py-3 border-b">
+                          <div className="text-sm text-muted-foreground mb-1">52 Hafta Düşük</div>
+                          <div className="font-medium text-destructive">{marketData.low52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}</div>
+                        </div>
+                      )}
+                      {marketData.volume && (
+                        <div className="py-3 border-b">
+                          <div className="text-sm text-muted-foreground mb-1">Günlük Hacim</div>
+                          <div className="font-medium">{marketData.volume.toLocaleString('tr-TR')}</div>
+                        </div>
+                      )}
+                      {marketData.marketCap && (
+                        <div className="py-3 border-b">
+                          <div className="text-sm text-muted-foreground mb-1">Piyasa Değeri</div>
+                          <div className="font-medium">{marketData.marketCap}</div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -324,36 +372,20 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
           {/* Yan Panel */}
           <div className="space-y-6">
             {/* İlgili Piyasalar */}
-            <Card>
-              <CardHeader>
-                <CardTitle>İlgili Piyasalar</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {relatedMarkets.map((market) => (
-                    <Link
-                      key={market.symbol}
-                      href={`/piyasalar/${market.symbol.toLowerCase().replace(/\//g, "-")}`}
-                      className="block p-3 rounded-lg border hover:border-primary hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="font-medium">{market.symbol}</div>
-                          <div className="text-sm text-muted-foreground">{market.name}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium">{market.price}</div>
-                          <div className={`text-sm ${market.change > 0 ? "text-success" : "text-destructive"}`}>
-                            {market.change > 0 ? "+" : ""}
-                            {market.change}%
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {marketData && (
+              <RelatedMarkets
+                currentSymbol={symbol}
+                category={(() => {
+                  const categoryMap: Record<string, 'forex' | 'crypto' | 'stock' | 'commodity'> = {
+                    'Döviz': 'forex',
+                    'Kripto Para': 'crypto',
+                    'Hisse Senedi': 'stock',
+                    'Emtia': 'commodity',
+                  }
+                  return categoryMap[marketData.type] || 'forex'
+                })()}
+              />
+            )}
 
             {/* Son Haberler */}
             <Card>

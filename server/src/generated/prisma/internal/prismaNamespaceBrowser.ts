@@ -60,7 +60,9 @@ export const ModelName = {
   AdSlotTemplate: 'AdSlotTemplate',
   ToolAdSlot: 'ToolAdSlot',
   ToolDataSync: 'ToolDataSync',
-  ExternalData: 'ExternalData'
+  ExternalData: 'ExternalData',
+  BistDailyData: 'BistDailyData',
+  TcmbDailyData: 'TcmbDailyData'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -281,6 +283,41 @@ export const ExternalDataScalarFieldEnum = {
 } as const
 
 export type ExternalDataScalarFieldEnum = (typeof ExternalDataScalarFieldEnum)[keyof typeof ExternalDataScalarFieldEnum]
+
+
+export const BistDailyDataScalarFieldEnum = {
+  id: 'id',
+  symbol: 'symbol',
+  date: 'date',
+  price: 'price',
+  open: 'open',
+  high: 'high',
+  low: 'low',
+  prevClose: 'prevClose',
+  change: 'change',
+  changePercent: 'changePercent',
+  volume: 'volume',
+  volumeTL: 'volumeTL',
+  buy: 'buy',
+  sell: 'sell',
+  bistGroups: 'bistGroups',
+  lastTradeTime: 'lastTradeTime',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BistDailyDataScalarFieldEnum = (typeof BistDailyDataScalarFieldEnum)[keyof typeof BistDailyDataScalarFieldEnum]
+
+
+export const TcmbDailyDataScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  forexData: 'forexData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TcmbDailyDataScalarFieldEnum = (typeof TcmbDailyDataScalarFieldEnum)[keyof typeof TcmbDailyDataScalarFieldEnum]
 
 
 export const SortOrder = {

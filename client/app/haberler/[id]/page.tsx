@@ -15,6 +15,7 @@ import { newsAdsApi, NewsAdSlot } from "@/lib/news-ads-api"
 import { NewsAdSlotDisplay } from "@/components/news/AdSlotDisplay"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { marketApi, MarketDataItem } from "@/lib/market-api"
 
 export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -23,11 +24,17 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   const [categories, setCategories] = useState<Category[]>([])
   const [adSlots, setAdSlots] = useState<NewsAdSlot[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [marketData, setMarketData] = useState<MarketDataItem[]>([])
 
   useEffect(() => {
     loadCategories()
     loadNews()
     loadAdSlots()
+    loadMarketData()
+    
+    // Her 20 saniyede bir piyasa verilerini güncelle
+    const interval = setInterval(loadMarketData, 20000)
+    return () => clearInterval(interval)
   }, [resolvedParams.id])
 
   const loadAdSlots = async () => {
@@ -61,6 +68,36 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const loadMarketData = async () => {
+    try {
+      const response = await marketApi.getTickerData()
+      setMarketData(response.items)
+    } catch (error) {
+      console.error('Piyasa verileri yüklenemedi:', error)
+    }
+  }
+
+  const getItemBySymbol = (symbol: string): MarketDataItem | undefined => {
+    return marketData.find(item => item.symbol === symbol || item.symbol.startsWith(symbol))
+  }
+
+  const formatPrice = (item: MarketDataItem | undefined) => {
+    if (!item) return '--'
+    
+    if (item.category === 'crypto') {
+      return item.price.toLocaleString('en-US', { maximumFractionDigits: 0 })
+    } else if (item.category === 'forex') {
+      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 4 })
+    }
+    return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+  }
+
+  const formatChange = (item: MarketDataItem | undefined) => {
+    if (!item) return '--'
+    const sign = item.changePercent >= 0 ? '+' : ''
+    return `${sign}${item.changePercent.toFixed(2)}%`
   }
 
   const getCategoryLabel = (item: News) => {
@@ -144,7 +181,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </Link>
         </Button>
 
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr_350px]">
+        <div className={`grid gap-8 ${adSlotsByPosition.SIDEBAR_LEFT.length > 0 ? 'lg:grid-cols-[280px_1fr_350px]' : 'lg:grid-cols-[1fr_350px]'}`}>
           {/* Sol Sidebar */}
           {adSlotsByPosition.SIDEBAR_LEFT.length > 0 && (
             <aside className="space-y-6">
@@ -334,20 +371,37 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 </Button>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm text-(--color-foreground-muted)">USD/TRY</p>
-                    <p className="font-bold">34.25</p>
-                  </div>
-                  <span className="text-sm font-medium text-green-600">+0.12%</span>
-                </div>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm text-(--color-foreground-muted)">BTC/USD</p>
-                    <p className="font-bold">95,240</p>
-                  </div>
-                  <span className="text-sm font-medium text-green-600">+2.18%</span>
-                </div>
+                {(() => {
+                  const usdTry = getItemBySymbol('USD/TRY')
+                  const eurTry = getItemBySymbol('EUR/TRY')
+                  const btc = getItemBySymbol('BTC')
+                  const bist100 = marketData.find(item => item.name?.includes('BIST 100') || item.symbol === 'XU100')
+                  
+                  const items = [
+                    { label: 'USD/TRY', item: usdTry },
+                    { label: 'EUR/TRY', item: eurTry },
+                    { label: 'BTC/USD', item: btc },
+                    { label: 'BIST 100', item: bist100 },
+                  ].filter(i => i.item) // Sadece bulunanları göster
+                  
+                  return items.length > 0 ? (
+                    items.map(({ label, item }) => (
+                      <div key={label} className="flex items-center justify-between rounded-lg border p-3">
+                        <div>
+                          <p className="text-sm text-(--color-foreground-muted)">{label}</p>
+                          <p className="font-bold">{formatPrice(item)}</p>
+                        </div>
+                        <span className={`text-sm font-medium ${item?.isUp ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatChange(item)}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-sm text-(--color-foreground-muted)">
+                      Piyasa verileri yükleniyor...
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           </aside>

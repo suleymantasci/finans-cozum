@@ -22,6 +22,12 @@ async function fetchApi<T>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    // Market data için cache'i devre dışı bırak (gerçek zamanlı veriler için)
+    cache: endpoint.includes('/market-data/') ? 'no-store' : options.cache || 'default',
+    // Timeout için signal ekle (30 saniye)
+    signal: options.signal || (typeof AbortController !== 'undefined' 
+      ? new AbortController().signal 
+      : undefined),
     ...options,
   };
 
@@ -36,7 +42,20 @@ async function fetchApi<T>(
     }
   }
 
-  const response = await fetch(url, config);
+  // Timeout için AbortController oluştur
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller 
+    ? setTimeout(() => controller.abort(), 30000) // 30 saniye timeout
+    : null;
+
+  try {
+    const response = await fetch(url, {
+      ...config,
+      signal: controller?.signal || config.signal,
+    });
+    
+    // Timeout'u temizle
+    if (timeoutId) clearTimeout(timeoutId);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -67,6 +86,22 @@ async function fetchApi<T>(
   } catch (error) {
     // JSON değilse text olarak döndür
     return text as T;
+    }
+  } catch (error: any) {
+    // Timeout'u temizle
+    if (timeoutId) clearTimeout(timeoutId);
+    
+    // Network hatası veya timeout
+    if (error.name === 'AbortError' || error.message?.includes('fetch') || error.message === 'Failed to fetch') {
+      throw new ApiError(
+        'İstek zaman aşımına uğradı veya sunucuya ulaşılamadı. Lütfen tekrar deneyin.',
+        0,
+        { originalError: error.message },
+      );
+    }
+    
+    // Diğer hatalar
+    throw error;
   }
 }
 

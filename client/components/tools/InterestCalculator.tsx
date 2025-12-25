@@ -104,3 +104,4 @@ export default function InterestCalculator({ config }: ToolComponentProps) {
   )
 }
 
+

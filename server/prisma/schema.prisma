@@ -365,3 +365,62 @@ model ExternalData {
   @@index([fetchedAt])
   @@map("external_data")
 }
+
+// ==================== BIST MARKET DATA ====================
+
+model BistDailyData {
+  id            String   @id @default(uuid())
+  symbol        String   // Hisse sembolü (örn: AKBNK)
+  date          DateTime @db.Date // Tarih (sadece tarih, saat yok)
+  
+  // Fiyat Bilgileri
+  price         Float    // Kapanış fiyatı
+  open          Float    // Açılış fiyatı
+  high          Float    // En yüksek
+  low           Float    // En düşük
+  prevClose     Float    // Önceki gün kapanış
+  
+  // Değişim
+  change        Float    // Değişim miktarı
+  changePercent Float    // Değişim yüzdesi
+  
+  // Hacim
+  volume        Float    // Hacim (Lot)
+  volumeTL      Float    // Hacim (TL)
+  
+  // Alış/Satış
+  buy           Float?
+  sell          Float?
+  
+  // BIST Grupları
+  bistGroups    String[] // ['BIST', 'BIST 100', 'BIST 50', vb.]
+  
+  // Metadata
+  lastTradeTime String?  // Son işlem saati
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([symbol, date])
+  @@index([symbol])
+  @@index([date])
+  @@index([symbol, date])
+  @@map("bist_daily_data")
+}
+
+// ==================== TCMB FOREX DATA ====================
+
+model TcmbDailyData {
+  id            String   @id @default(uuid())
+  date          DateTime @db.Date // Tarih (sadece tarih, saat yok)
+  
+  // Döviz Kurları (JSON formatında saklanacak)
+  // Format: { "USD/TRY": { code: "USD", pair: "USD/TRY", name: "Amerikan Doları", price: 34.56, buy: 34.50, sell: 34.60 }, ... }
+  forexData     Json     // Tüm döviz kurları
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("tcmb_daily_data")
+}

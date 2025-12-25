@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import MarketsClientPage from "./marketsClientPage"
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 }
 
 export default function MarketsPage() {
-  return <MarketsClientPage />
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-16">Yükleniyor...</div>}>
+      <MarketsClientPage />
+    </Suspense>
+  )
 }

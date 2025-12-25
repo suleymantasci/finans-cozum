@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -13,12 +14,15 @@ import { ToolAdSlotsModule } from './tool-ad-slots/tool-ad-slots.module';
 import { AdSlotTemplatesModule } from './ad-slot-templates/ad-slot-templates.module';
 import { ToolDataSyncModule } from './tool-data-sync/tool-data-sync.module';
 import { NewsAdSlotsModule } from './news-ad-slots/news-ad-slots.module';
+import { CacheModule } from './cache/cache.module';
+import { MarketDataModule } from './market-data/market-data.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -32,6 +36,8 @@ import { NewsAdSlotsModule } from './news-ad-slots/news-ad-slots.module';
     AdSlotTemplatesModule,
     ToolDataSyncModule,
     NewsAdSlotsModule,
+    CacheModule,
+    MarketDataModule,
   ],
 })
 export class AppModule {}

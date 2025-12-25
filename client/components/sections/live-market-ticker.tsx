@@ -1,47 +1,110 @@
 "use client"
 
-import { TrendingUp, TrendingDown } from "lucide-react"
-
-const mockMarketData = [
-  { symbol: "USD/TRY", price: "34.25", change: "+0.45%", isUp: true },
-  { symbol: "EUR/TRY", price: "37.82", change: "+0.32%", isUp: true },
-  { symbol: "BTC", price: "$95,450", change: "-1.25%", isUp: false },
-  { symbol: "ETH", price: "$3,625", change: "+2.18%", isUp: true },
-  { symbol: "ALTIN", price: "₺2,845", change: "+0.85%", isUp: true },
-  { symbol: "BIST 100", price: "9,856", change: "-0.52%", isUp: false },
-]
+import { useState, useEffect } from "react"
+import { TrendingUp, TrendingDown, Loader2 } from "lucide-react"
+import { marketApi, MarketDataItem } from "@/lib/market-api"
 
 export function LiveMarketTicker() {
+  const [marketData, setMarketData] = useState<MarketDataItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadMarketData()
+    
+    // Her 30 saniyede bir güncelle
+    const interval = setInterval(loadMarketData, 30000)
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  const loadMarketData = async () => {
+    try {
+      const response = await marketApi.getTickerData()
+      setMarketData(response.items)
+      setLoading(false)
+    } catch (error) {
+      console.error('Ticker verileri yüklenemedi:', error)
+      setLoading(false)
+    }
+  }
+
+  const formatPrice = (item: MarketDataItem) => {
+    if (item.category === 'crypto') {
+      return `$${item.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+    } else if (item.category === 'commodity') {
+      if (item.symbol === 'ONS_ALTIN') {
+        return `$${item.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+      }
+      return `₺${item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}`
+    } else if (item.category === 'stock') {
+      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+    } else {
+      // Forex
+      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 4 })
+    }
+  }
+
+  const formatChange = (changePercent: number) => {
+    const sign = changePercent >= 0 ? '+' : ''
+    return `${sign}${changePercent.toFixed(2)}%`
+  }
+
+  const getDisplayName = (item: MarketDataItem) => {
+    // Altın/emtia için name değerini kullan, diğerleri için symbol
+    if (item.category === 'commodity') {
+      const goldSymbols = ['GRAM_ALTIN', 'CEYREK_YENI', 'CEYREK_ALTIN', 'TAM_YENI', 'TAM_ALTIN', 'HAS_ALTIN', 'GRAM_GUMUS']
+      if (goldSymbols.includes(item.symbol)) {
+        return item.name || item.symbol
+      }
+    }
+    return item.symbol
+  }
+
+  if (loading && marketData.length === 0) {
+    return (
+      <div className="border-b bg-(--color-surface) overflow-hidden">
+        <div className="flex items-center justify-center gap-2 py-3">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm text-(--color-foreground-muted)">Piyasa verileri yükleniyor...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (marketData.length === 0) {
+    return null
+  }
+
   return (
     <div className="border-b bg-(--color-surface) overflow-hidden">
       <div className="flex animate-ticker gap-8 py-3">
         {/* İlk Set */}
-        {mockMarketData.map((item, index) => (
+        {marketData.map((item, index) => (
           <div key={`first-${index}`} className="flex items-center gap-2 whitespace-nowrap px-4">
-            <span className="font-semibold">{item.symbol}</span>
-            <span className="text-(--color-foreground-muted)">{item.price}</span>
+            <span className="font-semibold">{getDisplayName(item)}</span>
+            <span className="text-(--color-foreground-muted)">{formatPrice(item)}</span>
             <span
               className={`flex items-center gap-1 text-sm ${
                 item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
               }`}
             >
               {item.isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {item.change}
+              {formatChange(item.changePercent)}
             </span>
           </div>
         ))}
         {/* Duplicate Set için seamless loop */}
-        {mockMarketData.map((item, index) => (
+        {marketData.map((item, index) => (
           <div key={`second-${index}`} className="flex items-center gap-2 whitespace-nowrap px-4">
-            <span className="font-semibold">{item.symbol}</span>
-            <span className="text-(--color-foreground-muted)">{item.price}</span>
+            <span className="font-semibold">{getDisplayName(item)}</span>
+            <span className="text-(--color-foreground-muted)">{formatPrice(item)}</span>
             <span
               className={`flex items-center gap-1 text-sm ${
                 item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
               }`}
             >
               {item.isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {item.change}
+              {formatChange(item.changePercent)}
             </span>
           </div>
         ))}

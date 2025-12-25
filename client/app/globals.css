@@ -153,3 +153,42 @@
 .animate-ticker {
   animation: ticker 40s linear infinite;
 }
+
+/* Price change animations - text color change */
+@keyframes priceUp {
+  0% { 
+    color: oklch(0.5 0.18 145); /* bright green */
+    transform: scale(1.05);
+  }
+  30% { 
+    color: oklch(0.5 0.18 145);
+    transform: scale(1.02);
+  }
+  100% { 
+    color: inherit;
+    transform: scale(1);
+  }
+}
+
+@keyframes priceDown {
+  0% { 
+    color: oklch(0.55 0.25 25); /* bright red */
+    transform: scale(1.05);
+  }
+  30% { 
+    color: oklch(0.55 0.25 25);
+    transform: scale(1.02);
+  }
+  100% { 
+    color: inherit;
+    transform: scale(1);
+  }
+}
+
+.animate-price-up {
+  animation: priceUp 2s ease-out forwards;
+}
+
+.animate-price-down {
+  animation: priceDown 2s ease-out forwards;
+}

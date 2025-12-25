@@ -3,3 +3,4 @@ import { CreateNewsAdSlotDto } from './create-news-ad-slot.dto';
 
 export class UpdateNewsAdSlotDto extends PartialType(CreateNewsAdSlotDto) {}
 
+

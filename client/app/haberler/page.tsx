@@ -11,6 +11,7 @@ import { categoriesApi, Category } from "@/lib/categories-api"
 import { newsAdsApi, NewsAdSlot } from "@/lib/news-ads-api"
 import { NewsAdSlotDisplay } from "@/components/news/AdSlotDisplay"
 import { toast } from "sonner"
+import { marketApi, MarketDataItem } from "@/lib/market-api"
 
 
 const popularTools = [
@@ -28,12 +29,6 @@ const popularTools = [
   },
 ]
 
-const marketSummary = [
-  { name: "USD/TRY", value: "34.25", change: "+0.12%", positive: true },
-  { name: "EUR/TRY", value: "37.82", change: "+0.08%", positive: true },
-  { name: "BTC/USD", value: "95,240", change: "+2.18%", positive: true },
-  { name: "BIST 100", value: "9,856", change: "-0.34%", positive: false },
-]
 
 export default function NewsPage() {
   const [news, setNews] = useState<News[]>([])
@@ -41,10 +36,16 @@ export default function NewsPage() {
   const [adSlots, setAdSlots] = useState<NewsAdSlot[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("Tümü")
   const [isLoading, setIsLoading] = useState(true)
+  const [marketData, setMarketData] = useState<MarketDataItem[]>([])
 
   useEffect(() => {
     loadCategories()
     loadAdSlots()
+    loadMarketData()
+    
+    // Her 20 saniyede bir piyasa verilerini güncelle
+    const interval = setInterval(loadMarketData, 20000)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -80,6 +81,36 @@ export default function NewsPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const loadMarketData = async () => {
+    try {
+      const response = await marketApi.getTickerData()
+      setMarketData(response.items)
+    } catch (error) {
+      console.error('Piyasa verileri yüklenemedi:', error)
+    }
+  }
+
+  const getItemBySymbol = (symbol: string): MarketDataItem | undefined => {
+    return marketData.find(item => item.symbol === symbol || item.symbol.startsWith(symbol))
+  }
+
+  const formatPrice = (item: MarketDataItem | undefined) => {
+    if (!item) return '--'
+    
+    if (item.category === 'crypto') {
+      return item.price.toLocaleString('en-US', { maximumFractionDigits: 0 })
+    } else if (item.category === 'forex') {
+      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 4 })
+    }
+    return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+  }
+
+  const formatChange = (item: MarketDataItem | undefined) => {
+    if (!item) return '--'
+    const sign = item.changePercent >= 0 ? '+' : ''
+    return `${sign}${item.changePercent.toFixed(2)}%`
   }
 
   const getCategoryLabel = (item: News) => {
@@ -221,19 +252,39 @@ export default function NewsPage() {
               </Link>
             </Button>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {marketSummary.map((item) => (
-              <div key={item.name} className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <p className="text-sm text-(--color-foreground-muted)">{item.name}</p>
-                  <p className="text-lg font-bold">{item.value}</p>
-                </div>
-                <span className={`text-sm font-medium ${item.positive ? "text-green-600" : "text-red-600"}`}>
-                  {item.change}
-                </span>
-              </div>
-            ))}
-          </div>
+          {marketData.length === 0 ? (
+            <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+              Piyasa verileri yükleniyor...
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {(() => {
+                const usdTry = getItemBySymbol('USD/TRY')
+                const eurTry = getItemBySymbol('EUR/TRY')
+                const btc = getItemBySymbol('BTC')
+                const bist100 = marketData.find(item => item.name?.includes('BIST 100') || item.symbol === 'XU100')
+                
+                const items = [
+                  { name: 'USD/TRY', item: usdTry },
+                  { name: 'EUR/TRY', item: eurTry },
+                  { name: 'BTC/USD', item: btc },
+                  { name: 'BIST 100', item: bist100 },
+                ].filter(i => i.item) // Sadece bulunanları göster
+                
+                return items.map(({ name, item }) => (
+                  <div key={name} className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <p className="text-sm text-(--color-foreground-muted)">{name}</p>
+                      <p className="text-lg font-bold">{formatPrice(item)}</p>
+                    </div>
+                    <span className={`text-sm font-medium ${item?.isUp ? "text-green-600" : "text-red-600"}`}>
+                      {formatChange(item)}
+                    </span>
+                  </div>
+                ))
+              })()}
+            </div>
+          )}
         </div>
 
         {/* News Grid */}

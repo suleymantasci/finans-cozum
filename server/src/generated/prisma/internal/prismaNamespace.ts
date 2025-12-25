@@ -393,7 +393,9 @@ export const ModelName = {
   AdSlotTemplate: 'AdSlotTemplate',
   ToolAdSlot: 'ToolAdSlot',
   ToolDataSync: 'ToolDataSync',
-  ExternalData: 'ExternalData'
+  ExternalData: 'ExternalData',
+  BistDailyData: 'BistDailyData',
+  TcmbDailyData: 'TcmbDailyData'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -409,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData"
+    modelProps: "user" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1153,6 +1155,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BistDailyData: {
+      payload: Prisma.$BistDailyDataPayload<ExtArgs>
+      fields: Prisma.BistDailyDataFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BistDailyDataFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BistDailyDataFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>
+        }
+        findFirst: {
+          args: Prisma.BistDailyDataFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BistDailyDataFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>
+        }
+        findMany: {
+          args: Prisma.BistDailyDataFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>[]
+        }
+        create: {
+          args: Prisma.BistDailyDataCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>
+        }
+        createMany: {
+          args: Prisma.BistDailyDataCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BistDailyDataCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>[]
+        }
+        delete: {
+          args: Prisma.BistDailyDataDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>
+        }
+        update: {
+          args: Prisma.BistDailyDataUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>
+        }
+        deleteMany: {
+          args: Prisma.BistDailyDataDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BistDailyDataUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BistDailyDataUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>[]
+        }
+        upsert: {
+          args: Prisma.BistDailyDataUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BistDailyDataPayload>
+        }
+        aggregate: {
+          args: Prisma.BistDailyDataAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBistDailyData>
+        }
+        groupBy: {
+          args: Prisma.BistDailyDataGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BistDailyDataGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BistDailyDataCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BistDailyDataCountAggregateOutputType> | number
+        }
+      }
+    }
+    TcmbDailyData: {
+      payload: Prisma.$TcmbDailyDataPayload<ExtArgs>
+      fields: Prisma.TcmbDailyDataFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TcmbDailyDataFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TcmbDailyDataFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>
+        }
+        findFirst: {
+          args: Prisma.TcmbDailyDataFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TcmbDailyDataFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>
+        }
+        findMany: {
+          args: Prisma.TcmbDailyDataFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>[]
+        }
+        create: {
+          args: Prisma.TcmbDailyDataCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>
+        }
+        createMany: {
+          args: Prisma.TcmbDailyDataCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TcmbDailyDataCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>[]
+        }
+        delete: {
+          args: Prisma.TcmbDailyDataDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>
+        }
+        update: {
+          args: Prisma.TcmbDailyDataUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>
+        }
+        deleteMany: {
+          args: Prisma.TcmbDailyDataDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TcmbDailyDataUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TcmbDailyDataUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>[]
+        }
+        upsert: {
+          args: Prisma.TcmbDailyDataUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TcmbDailyDataPayload>
+        }
+        aggregate: {
+          args: Prisma.TcmbDailyDataAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTcmbDailyData>
+        }
+        groupBy: {
+          args: Prisma.TcmbDailyDataGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TcmbDailyDataGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TcmbDailyDataCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TcmbDailyDataCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1394,6 +1544,41 @@ export const ExternalDataScalarFieldEnum = {
 } as const
 
 export type ExternalDataScalarFieldEnum = (typeof ExternalDataScalarFieldEnum)[keyof typeof ExternalDataScalarFieldEnum]
+
+
+export const BistDailyDataScalarFieldEnum = {
+  id: 'id',
+  symbol: 'symbol',
+  date: 'date',
+  price: 'price',
+  open: 'open',
+  high: 'high',
+  low: 'low',
+  prevClose: 'prevClose',
+  change: 'change',
+  changePercent: 'changePercent',
+  volume: 'volume',
+  volumeTL: 'volumeTL',
+  buy: 'buy',
+  sell: 'sell',
+  bistGroups: 'bistGroups',
+  lastTradeTime: 'lastTradeTime',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BistDailyDataScalarFieldEnum = (typeof BistDailyDataScalarFieldEnum)[keyof typeof BistDailyDataScalarFieldEnum]
+
+
+export const TcmbDailyDataScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  forexData: 'forexData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TcmbDailyDataScalarFieldEnum = (typeof TcmbDailyDataScalarFieldEnum)[keyof typeof TcmbDailyDataScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1743,6 +1928,8 @@ export type GlobalOmitConfig = {
   toolAdSlot?: Prisma.ToolAdSlotOmit
   toolDataSync?: Prisma.ToolDataSyncOmit
   externalData?: Prisma.ExternalDataOmit
+  bistDailyData?: Prisma.BistDailyDataOmit
+  tcmbDailyData?: Prisma.TcmbDailyDataOmit
 }
 
 /* Types for Logging */

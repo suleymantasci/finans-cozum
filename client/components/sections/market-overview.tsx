@@ -1,38 +1,94 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, DollarSign, Euro, Bitcoin } from "lucide-react"
+"use client"
 
-const marketData = [
-  {
-    title: "USD/TRY",
-    value: "34.25",
-    change: "+0.45%",
-    isUp: true,
-    icon: DollarSign,
-  },
-  {
-    title: "EUR/TRY",
-    value: "37.82",
-    change: "+0.32%",
-    isUp: true,
-    icon: Euro,
-  },
-  {
-    title: "Bitcoin",
-    value: "$95,450",
-    change: "-1.25%",
-    isUp: false,
-    icon: Bitcoin,
-  },
-  {
-    title: "Altın (gr)",
-    value: "₺2,845",
-    change: "+0.85%",
-    isUp: true,
-    icon: TrendingUp,
-  },
-]
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { TrendingUp, TrendingDown, DollarSign, Euro, Bitcoin, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { marketApi, MarketDataItem } from "@/lib/market-api"
 
 export function MarketOverview() {
+  const [marketData, setMarketData] = useState<MarketDataItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadMarketData()
+    
+    // Her 20 saniyede bir güncelle (cache süresi ile aynı)
+    const interval = setInterval(loadMarketData, 20000)
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  const loadMarketData = async () => {
+    try {
+      const response = await marketApi.getTickerData()
+      setMarketData(response.items)
+      setLoading(false)
+    } catch (error) {
+      console.error('Market overview verileri yüklenemedi:', error)
+      setLoading(false)
+    }
+  }
+
+  // İstenen sembolleri bul
+  const getItemBySymbol = (symbol: string): MarketDataItem | undefined => {
+    return marketData.find(item => item.symbol === symbol || item.symbol.startsWith(symbol))
+  }
+
+  const usdTry = getItemBySymbol('USD/TRY')
+  const eurTry = getItemBySymbol('EUR/TRY')
+  const btc = getItemBySymbol('BTC')
+  const gramAltin = getItemBySymbol('GRAM_ALTIN')
+
+  const formatPrice = (item: MarketDataItem | undefined) => {
+    if (!item) return '--'
+    
+    if (item.category === 'crypto') {
+      return `$${item.price.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+    } else if (item.category === 'commodity') {
+      return `₺${item.price.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`
+    } else if (item.category === 'forex') {
+      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 4 })
+    }
+    return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+  }
+
+  const formatChange = (item: MarketDataItem | undefined) => {
+    if (!item) return '--'
+    const sign = item.changePercent >= 0 ? '+' : ''
+    return `${sign}${item.changePercent.toFixed(2)}%`
+  }
+
+  const displayData = [
+    {
+      title: "USD/TRY",
+      value: formatPrice(usdTry),
+      change: formatChange(usdTry),
+      isUp: usdTry?.isUp ?? false,
+      icon: DollarSign,
+    },
+    {
+      title: "EUR/TRY",
+      value: formatPrice(eurTry),
+      change: formatChange(eurTry),
+      isUp: eurTry?.isUp ?? false,
+      icon: Euro,
+    },
+    {
+      title: "Bitcoin",
+      value: formatPrice(btc),
+      change: formatChange(btc),
+      isUp: btc?.isUp ?? false,
+      icon: Bitcoin,
+    },
+    {
+      title: gramAltin?.name || "Gram Altın",
+      value: formatPrice(gramAltin),
+      change: formatChange(gramAltin),
+      isUp: gramAltin?.isUp ?? false,
+      icon: TrendingUp,
+    },
+  ]
+
   return (
     <section className="bg-(--color-surface) py-16 md:py-24">
       <div className="container mx-auto px-4">
@@ -44,26 +100,47 @@ export function MarketOverview() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {marketData.map((item) => (
-            <Card key={item.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                <item.icon className="h-4 w-4 text-(--color-foreground-muted)" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{item.value}</div>
-                <div className="flex items-center gap-1 text-xs">
-                  {item.isUp ? (
-                    <TrendingUp className="h-3 w-3 text-(--color-success)" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-(--color-danger)" />
-                  )}
-                  <span className={item.isUp ? "text-(--color-success)" : "text-(--color-danger)"}>{item.change}</span>
-                  <span className="text-(--color-foreground-muted)">son 24 saat</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {loading && marketData.length === 0 ? (
+            // Loading state
+            Array.from({ length: 4 }).map((_, index) => (
+              <Card key={`loading-${index}`}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Yükleniyor...</CardTitle>
+                  <Loader2 className="h-4 w-4 animate-spin text-(--color-foreground-muted)" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">--</div>
+                  <div className="flex items-center gap-1 text-xs text-(--color-foreground-muted)">
+                    <span>Yükleniyor...</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            displayData.map((item) => (
+              <Card key={item.title}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                  <item.icon className="h-4 w-4 text-(--color-foreground-muted)" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{item.value}</div>
+                  <div className="flex items-center gap-1 text-xs">
+                    {item.change !== '--' && (
+                      <>
+                        {item.isUp ? (
+                          <TrendingUp className="h-3 w-3 text-(--color-success)" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3 text-(--color-danger)" />
+                        )}
+                        <span className={item.isUp ? "text-(--color-success)" : "text-(--color-danger)"}>{item.change}</span>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </section>
