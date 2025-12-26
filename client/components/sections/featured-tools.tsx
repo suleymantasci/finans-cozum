@@ -92,7 +92,7 @@ export function FeaturedTools() {
                     <CardTitle className="text-xl">{tool.name}</CardTitle>
                     <CardDescription className="text-base">{tool.description || 'Finansal hesaplama aracı'}</CardDescription>
                   </CardHeader>
-                  <CardFooter>
+                  <CardFooter className="mt-auto">
                     <Button asChild variant="ghost" className="group-hover:text-(--color-primary)">
                       <Link href={`/araclar/${tool.slug}`} className="flex items-center gap-2">
                         Hesapla
