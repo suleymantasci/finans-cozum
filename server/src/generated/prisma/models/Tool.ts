@@ -339,6 +339,7 @@ export type ToolWhereInput = {
   category?: Prisma.XOR<Prisma.ToolCategoryNullableScalarRelationFilter, Prisma.ToolCategoryWhereInput> | null
   adSlots?: Prisma.ToolAdSlotListRelationFilter
   dataSyncs?: Prisma.ToolDataSyncListRelationFilter
+  favoritedBy?: Prisma.FavoriteToolListRelationFilter
 }
 
 export type ToolOrderByWithRelationInput = {
@@ -366,6 +367,7 @@ export type ToolOrderByWithRelationInput = {
   category?: Prisma.ToolCategoryOrderByWithRelationInput
   adSlots?: Prisma.ToolAdSlotOrderByRelationAggregateInput
   dataSyncs?: Prisma.ToolDataSyncOrderByRelationAggregateInput
+  favoritedBy?: Prisma.FavoriteToolOrderByRelationAggregateInput
 }
 
 export type ToolWhereUniqueInput = Prisma.AtLeast<{
@@ -396,6 +398,7 @@ export type ToolWhereUniqueInput = Prisma.AtLeast<{
   category?: Prisma.XOR<Prisma.ToolCategoryNullableScalarRelationFilter, Prisma.ToolCategoryWhereInput> | null
   adSlots?: Prisma.ToolAdSlotListRelationFilter
   dataSyncs?: Prisma.ToolDataSyncListRelationFilter
+  favoritedBy?: Prisma.FavoriteToolListRelationFilter
 }, "id" | "name" | "slug">
 
 export type ToolOrderByWithAggregationInput = {
@@ -478,6 +481,7 @@ export type ToolCreateInput = {
   category?: Prisma.ToolCategoryCreateNestedOneWithoutToolsInput
   adSlots?: Prisma.ToolAdSlotCreateNestedManyWithoutToolInput
   dataSyncs?: Prisma.ToolDataSyncCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolCreateNestedManyWithoutToolInput
 }
 
 export type ToolUncheckedCreateInput = {
@@ -504,6 +508,7 @@ export type ToolUncheckedCreateInput = {
   updatedAt?: Date | string
   adSlots?: Prisma.ToolAdSlotUncheckedCreateNestedManyWithoutToolInput
   dataSyncs?: Prisma.ToolDataSyncUncheckedCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedCreateNestedManyWithoutToolInput
 }
 
 export type ToolUpdateInput = {
@@ -530,6 +535,7 @@ export type ToolUpdateInput = {
   category?: Prisma.ToolCategoryUpdateOneWithoutToolsNestedInput
   adSlots?: Prisma.ToolAdSlotUpdateManyWithoutToolNestedInput
   dataSyncs?: Prisma.ToolDataSyncUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUpdateManyWithoutToolNestedInput
 }
 
 export type ToolUncheckedUpdateInput = {
@@ -556,6 +562,7 @@ export type ToolUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adSlots?: Prisma.ToolAdSlotUncheckedUpdateManyWithoutToolNestedInput
   dataSyncs?: Prisma.ToolDataSyncUncheckedUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedUpdateManyWithoutToolNestedInput
 }
 
 export type ToolCreateManyInput = {
@@ -627,6 +634,11 @@ export type ToolUncheckedUpdateManyInput = {
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ToolScalarRelationFilter = {
+  is?: Prisma.ToolWhereInput
+  isNot?: Prisma.ToolWhereInput
 }
 
 export type ToolListRelationFilter = {
@@ -720,9 +732,18 @@ export type ToolNullableScalarRelationFilter = {
   isNot?: Prisma.ToolWhereInput | null
 }
 
-export type ToolScalarRelationFilter = {
-  is?: Prisma.ToolWhereInput
-  isNot?: Prisma.ToolWhereInput
+export type ToolCreateNestedOneWithoutFavoritedByInput = {
+  create?: Prisma.XOR<Prisma.ToolCreateWithoutFavoritedByInput, Prisma.ToolUncheckedCreateWithoutFavoritedByInput>
+  connectOrCreate?: Prisma.ToolCreateOrConnectWithoutFavoritedByInput
+  connect?: Prisma.ToolWhereUniqueInput
+}
+
+export type ToolUpdateOneRequiredWithoutFavoritedByNestedInput = {
+  create?: Prisma.XOR<Prisma.ToolCreateWithoutFavoritedByInput, Prisma.ToolUncheckedCreateWithoutFavoritedByInput>
+  connectOrCreate?: Prisma.ToolCreateOrConnectWithoutFavoritedByInput
+  upsert?: Prisma.ToolUpsertWithoutFavoritedByInput
+  connect?: Prisma.ToolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ToolUpdateToOneWithWhereWithoutFavoritedByInput, Prisma.ToolUpdateWithoutFavoritedByInput>, Prisma.ToolUncheckedUpdateWithoutFavoritedByInput>
 }
 
 export type ToolCreateNestedManyWithoutCategoryInput = {
@@ -814,6 +835,126 @@ export type ToolUpdateOneRequiredWithoutDataSyncsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ToolUpdateToOneWithWhereWithoutDataSyncsInput, Prisma.ToolUpdateWithoutDataSyncsInput>, Prisma.ToolUncheckedUpdateWithoutDataSyncsInput>
 }
 
+export type ToolCreateWithoutFavoritedByInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string | null
+  status?: $Enums.ToolStatus
+  component: string
+  icon?: string | null
+  color?: string | null
+  bgColor?: string | null
+  order?: number
+  isFeatured?: boolean
+  dataSourceType?: $Enums.ToolDataSourceType
+  dataSourceConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  metaTitle?: string | null
+  metaDescription?: string | null
+  keywords?: Prisma.ToolCreatekeywordsInput | string[]
+  views?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  category?: Prisma.ToolCategoryCreateNestedOneWithoutToolsInput
+  adSlots?: Prisma.ToolAdSlotCreateNestedManyWithoutToolInput
+  dataSyncs?: Prisma.ToolDataSyncCreateNestedManyWithoutToolInput
+}
+
+export type ToolUncheckedCreateWithoutFavoritedByInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string | null
+  status?: $Enums.ToolStatus
+  component: string
+  icon?: string | null
+  color?: string | null
+  bgColor?: string | null
+  order?: number
+  isFeatured?: boolean
+  dataSourceType?: $Enums.ToolDataSourceType
+  dataSourceConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  metaTitle?: string | null
+  metaDescription?: string | null
+  keywords?: Prisma.ToolCreatekeywordsInput | string[]
+  views?: number
+  categoryId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  adSlots?: Prisma.ToolAdSlotUncheckedCreateNestedManyWithoutToolInput
+  dataSyncs?: Prisma.ToolDataSyncUncheckedCreateNestedManyWithoutToolInput
+}
+
+export type ToolCreateOrConnectWithoutFavoritedByInput = {
+  where: Prisma.ToolWhereUniqueInput
+  create: Prisma.XOR<Prisma.ToolCreateWithoutFavoritedByInput, Prisma.ToolUncheckedCreateWithoutFavoritedByInput>
+}
+
+export type ToolUpsertWithoutFavoritedByInput = {
+  update: Prisma.XOR<Prisma.ToolUpdateWithoutFavoritedByInput, Prisma.ToolUncheckedUpdateWithoutFavoritedByInput>
+  create: Prisma.XOR<Prisma.ToolCreateWithoutFavoritedByInput, Prisma.ToolUncheckedCreateWithoutFavoritedByInput>
+  where?: Prisma.ToolWhereInput
+}
+
+export type ToolUpdateToOneWithWhereWithoutFavoritedByInput = {
+  where?: Prisma.ToolWhereInput
+  data: Prisma.XOR<Prisma.ToolUpdateWithoutFavoritedByInput, Prisma.ToolUncheckedUpdateWithoutFavoritedByInput>
+}
+
+export type ToolUpdateWithoutFavoritedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumToolStatusFieldUpdateOperationsInput | $Enums.ToolStatus
+  component?: Prisma.StringFieldUpdateOperationsInput | string
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bgColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dataSourceType?: Prisma.EnumToolDataSourceTypeFieldUpdateOperationsInput | $Enums.ToolDataSourceType
+  dataSourceConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ToolUpdatekeywordsInput | string[]
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.ToolCategoryUpdateOneWithoutToolsNestedInput
+  adSlots?: Prisma.ToolAdSlotUpdateManyWithoutToolNestedInput
+  dataSyncs?: Prisma.ToolDataSyncUpdateManyWithoutToolNestedInput
+}
+
+export type ToolUncheckedUpdateWithoutFavoritedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumToolStatusFieldUpdateOperationsInput | $Enums.ToolStatus
+  component?: Prisma.StringFieldUpdateOperationsInput | string
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bgColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dataSourceType?: Prisma.EnumToolDataSourceTypeFieldUpdateOperationsInput | $Enums.ToolDataSourceType
+  dataSourceConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ToolUpdatekeywordsInput | string[]
+  views?: Prisma.IntFieldUpdateOperationsInput | number
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adSlots?: Prisma.ToolAdSlotUncheckedUpdateManyWithoutToolNestedInput
+  dataSyncs?: Prisma.ToolDataSyncUncheckedUpdateManyWithoutToolNestedInput
+}
+
 export type ToolCreateWithoutCategoryInput = {
   id?: string
   name: string
@@ -837,6 +978,7 @@ export type ToolCreateWithoutCategoryInput = {
   updatedAt?: Date | string
   adSlots?: Prisma.ToolAdSlotCreateNestedManyWithoutToolInput
   dataSyncs?: Prisma.ToolDataSyncCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolCreateNestedManyWithoutToolInput
 }
 
 export type ToolUncheckedCreateWithoutCategoryInput = {
@@ -862,6 +1004,7 @@ export type ToolUncheckedCreateWithoutCategoryInput = {
   updatedAt?: Date | string
   adSlots?: Prisma.ToolAdSlotUncheckedCreateNestedManyWithoutToolInput
   dataSyncs?: Prisma.ToolDataSyncUncheckedCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedCreateNestedManyWithoutToolInput
 }
 
 export type ToolCreateOrConnectWithoutCategoryInput = {
@@ -940,6 +1083,7 @@ export type ToolCreateWithoutAdSlotsInput = {
   updatedAt?: Date | string
   category?: Prisma.ToolCategoryCreateNestedOneWithoutToolsInput
   dataSyncs?: Prisma.ToolDataSyncCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolCreateNestedManyWithoutToolInput
 }
 
 export type ToolUncheckedCreateWithoutAdSlotsInput = {
@@ -965,6 +1109,7 @@ export type ToolUncheckedCreateWithoutAdSlotsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   dataSyncs?: Prisma.ToolDataSyncUncheckedCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedCreateNestedManyWithoutToolInput
 }
 
 export type ToolCreateOrConnectWithoutAdSlotsInput = {
@@ -1006,6 +1151,7 @@ export type ToolUpdateWithoutAdSlotsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.ToolCategoryUpdateOneWithoutToolsNestedInput
   dataSyncs?: Prisma.ToolDataSyncUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUpdateManyWithoutToolNestedInput
 }
 
 export type ToolUncheckedUpdateWithoutAdSlotsInput = {
@@ -1031,6 +1177,7 @@ export type ToolUncheckedUpdateWithoutAdSlotsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dataSyncs?: Prisma.ToolDataSyncUncheckedUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedUpdateManyWithoutToolNestedInput
 }
 
 export type ToolCreateWithoutDataSyncsInput = {
@@ -1056,6 +1203,7 @@ export type ToolCreateWithoutDataSyncsInput = {
   updatedAt?: Date | string
   category?: Prisma.ToolCategoryCreateNestedOneWithoutToolsInput
   adSlots?: Prisma.ToolAdSlotCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolCreateNestedManyWithoutToolInput
 }
 
 export type ToolUncheckedCreateWithoutDataSyncsInput = {
@@ -1081,6 +1229,7 @@ export type ToolUncheckedCreateWithoutDataSyncsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adSlots?: Prisma.ToolAdSlotUncheckedCreateNestedManyWithoutToolInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedCreateNestedManyWithoutToolInput
 }
 
 export type ToolCreateOrConnectWithoutDataSyncsInput = {
@@ -1122,6 +1271,7 @@ export type ToolUpdateWithoutDataSyncsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.ToolCategoryUpdateOneWithoutToolsNestedInput
   adSlots?: Prisma.ToolAdSlotUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUpdateManyWithoutToolNestedInput
 }
 
 export type ToolUncheckedUpdateWithoutDataSyncsInput = {
@@ -1147,6 +1297,7 @@ export type ToolUncheckedUpdateWithoutDataSyncsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adSlots?: Prisma.ToolAdSlotUncheckedUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedUpdateManyWithoutToolNestedInput
 }
 
 export type ToolCreateManyCategoryInput = {
@@ -1195,6 +1346,7 @@ export type ToolUpdateWithoutCategoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adSlots?: Prisma.ToolAdSlotUpdateManyWithoutToolNestedInput
   dataSyncs?: Prisma.ToolDataSyncUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUpdateManyWithoutToolNestedInput
 }
 
 export type ToolUncheckedUpdateWithoutCategoryInput = {
@@ -1220,6 +1372,7 @@ export type ToolUncheckedUpdateWithoutCategoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adSlots?: Prisma.ToolAdSlotUncheckedUpdateManyWithoutToolNestedInput
   dataSyncs?: Prisma.ToolDataSyncUncheckedUpdateManyWithoutToolNestedInput
+  favoritedBy?: Prisma.FavoriteToolUncheckedUpdateManyWithoutToolNestedInput
 }
 
 export type ToolUncheckedUpdateManyWithoutCategoryInput = {
@@ -1253,11 +1406,13 @@ export type ToolUncheckedUpdateManyWithoutCategoryInput = {
 export type ToolCountOutputType = {
   adSlots: number
   dataSyncs: number
+  favoritedBy: number
 }
 
 export type ToolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adSlots?: boolean | ToolCountOutputTypeCountAdSlotsArgs
   dataSyncs?: boolean | ToolCountOutputTypeCountDataSyncsArgs
+  favoritedBy?: boolean | ToolCountOutputTypeCountFavoritedByArgs
 }
 
 /**
@@ -1282,6 +1437,13 @@ export type ToolCountOutputTypeCountAdSlotsArgs<ExtArgs extends runtime.Types.Ex
  */
 export type ToolCountOutputTypeCountDataSyncsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ToolDataSyncWhereInput
+}
+
+/**
+ * ToolCountOutputType without action
+ */
+export type ToolCountOutputTypeCountFavoritedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FavoriteToolWhereInput
 }
 
 
@@ -1310,6 +1472,7 @@ export type ToolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   category?: boolean | Prisma.Tool$categoryArgs<ExtArgs>
   adSlots?: boolean | Prisma.Tool$adSlotsArgs<ExtArgs>
   dataSyncs?: boolean | Prisma.Tool$dataSyncsArgs<ExtArgs>
+  favoritedBy?: boolean | Prisma.Tool$favoritedByArgs<ExtArgs>
   _count?: boolean | Prisma.ToolCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["tool"]>
 
@@ -1392,6 +1555,7 @@ export type ToolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   category?: boolean | Prisma.Tool$categoryArgs<ExtArgs>
   adSlots?: boolean | Prisma.Tool$adSlotsArgs<ExtArgs>
   dataSyncs?: boolean | Prisma.Tool$dataSyncsArgs<ExtArgs>
+  favoritedBy?: boolean | Prisma.Tool$favoritedByArgs<ExtArgs>
   _count?: boolean | Prisma.ToolCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ToolIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1407,6 +1571,7 @@ export type $ToolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     category: Prisma.$ToolCategoryPayload<ExtArgs> | null
     adSlots: Prisma.$ToolAdSlotPayload<ExtArgs>[]
     dataSyncs: Prisma.$ToolDataSyncPayload<ExtArgs>[]
+    favoritedBy: Prisma.$FavoriteToolPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1827,6 +1992,7 @@ export interface Prisma__ToolClient<T, Null = never, ExtArgs extends runtime.Typ
   category<T extends Prisma.Tool$categoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tool$categoryArgs<ExtArgs>>): Prisma.Prisma__ToolCategoryClient<runtime.Types.Result.GetResult<Prisma.$ToolCategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   adSlots<T extends Prisma.Tool$adSlotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tool$adSlotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ToolAdSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dataSyncs<T extends Prisma.Tool$dataSyncsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tool$dataSyncsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ToolDataSyncPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  favoritedBy<T extends Prisma.Tool$favoritedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tool$favoritedByArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoriteToolPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2337,6 +2503,30 @@ export type Tool$dataSyncsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.ToolDataSyncScalarFieldEnum | Prisma.ToolDataSyncScalarFieldEnum[]
+}
+
+/**
+ * Tool.favoritedBy
+ */
+export type Tool$favoritedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FavoriteTool
+   */
+  select?: Prisma.FavoriteToolSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FavoriteTool
+   */
+  omit?: Prisma.FavoriteToolOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FavoriteToolInclude<ExtArgs> | null
+  where?: Prisma.FavoriteToolWhereInput
+  orderBy?: Prisma.FavoriteToolOrderByWithRelationInput | Prisma.FavoriteToolOrderByWithRelationInput[]
+  cursor?: Prisma.FavoriteToolWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FavoriteToolScalarFieldEnum | Prisma.FavoriteToolScalarFieldEnum[]
 }
 
 /**

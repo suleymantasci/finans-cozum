@@ -11,10 +11,14 @@ import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { marketApi, MarketDataItem, TcmbForexResponse } from "@/lib/market-api"
 import { toast } from "sonner"
+import { favoriteMarketsApi } from "@/lib/favorite-markets-api"
+import { useAuth } from "@/contexts/auth-context"
+import { Star } from "lucide-react"
 
 export default function MarketsClientPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { isAuthenticated } = useAuth()
   
   // URL'den tab parametresini al, yoksa varsayılan olarak "forex"
   const activeTab = searchParams.get('tab') || 'forex'
@@ -28,6 +32,10 @@ export default function MarketsClientPage() {
   const [bistIndices, setBistIndices] = useState<Array<{ name: string; price: number; changePercent: number; isUp: boolean }>>([])
   const [commodityData, setCommodityData] = useState<MarketDataItem[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Favori durumları: { "symbol-category": true/false }
+  const [favoriteStatuses, setFavoriteStatuses] = useState<Record<string, boolean>>({})
+  const [favoriteLoading, setFavoriteLoading] = useState<Record<string, boolean>>({})
   
   // Önceki fiyatları sakla (animasyon için) - useRef kullanarak closure sorununu çözüyoruz
   const prevPricesRef = useRef<Record<string, number>>({})
@@ -79,7 +87,7 @@ export default function MarketsClientPage() {
     
     return () => clearInterval(interval)
   }, [])
-  
+
   // Tab değiştiğinde URL'i güncelle
   const handleTabChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -97,6 +105,74 @@ export default function MarketsClientPage() {
       item.name?.toLowerCase().includes(term)
     )
   }
+  
+  // Favori kontrol fonksiyonu
+  const getFavoriteKey = (symbol: string, category: string) => {
+    return `${symbol}-${category}`
+  }
+
+  const checkAllFavorites = async () => {
+    if (!isAuthenticated) return
+
+    try {
+      const favorites = await favoriteMarketsApi.getFavorites()
+      const statusMap: Record<string, boolean> = {}
+      
+      favorites.forEach(fav => {
+        const key = getFavoriteKey(fav.symbol, fav.category)
+        statusMap[key] = true
+      })
+
+      setFavoriteStatuses(statusMap)
+    } catch (error) {
+      console.error('Favori durumları kontrol edilemedi:', error)
+    }
+  }
+
+  const handleToggleFavorite = async (e: React.MouseEvent, item: MarketDataItem) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!isAuthenticated) {
+      toast.error('Favorilere eklemek için giriş yapmanız gerekiyor', {
+        action: {
+          label: 'Giriş Yap',
+          onClick: () => router.push('/giris'),
+        },
+      })
+      return
+    }
+
+    const key = getFavoriteKey(item.symbol, item.category)
+    const currentStatus = favoriteStatuses[key] || false
+
+    setFavoriteLoading(prev => ({ ...prev, [key]: true }))
+
+    try {
+      if (currentStatus) {
+        await favoriteMarketsApi.removeFavorite(item.symbol, item.category)
+        setFavoriteStatuses(prev => ({ ...prev, [key]: false }))
+        toast.success('Favorilerden kaldırıldı')
+      } else {
+        await favoriteMarketsApi.addFavorite(item.symbol, item.category)
+        setFavoriteStatuses(prev => ({ ...prev, [key]: true }))
+        toast.success('Favorilere eklendi')
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Bir hata oluştu')
+    } finally {
+      setFavoriteLoading(prev => ({ ...prev, [key]: false }))
+    }
+  }
+  
+  // Favori durumlarını kontrol et
+  useEffect(() => {
+    if (isAuthenticated && (forexData.length > 0 || cryptoData.length > 0 || stockData.length > 0 || commodityData.length > 0)) {
+      checkAllFavorites()
+    } else {
+      setFavoriteStatuses({})
+    }
+  }, [isAuthenticated, forexData.length, cryptoData.length, stockData.length, commodityData.length])
   
   // Sıralama fonksiyonu
   const sortData = <T extends MarketDataItem>(
@@ -563,39 +639,55 @@ export default function MarketsClientPage() {
           ) : viewMode === "grid" ? (
             <>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {displayedForexData.map((item) => (
-                  <Link key={item.symbol} href={`/piyasalar/${getSymbolSlug(item)}`}>
-                    <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-lg">{item.symbol}</CardTitle>
-                            {item.name && <CardDescription>{item.name}</CardDescription>}
-                          </div>
-                          <span
-                            className={`flex items-center gap-1 text-sm font-semibold ${
-                              item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
-                            }`}
-                          >
-                            {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                            {formatChange(item.changePercent)}
-                          </span>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className={`text-2xl font-bold rounded px-1 ${getPriceAnimationClass(item)}`}>{formatPrice(item)}</div>
-                          {item.metadata?.buy && item.metadata?.sell && (
-                            <div className="flex justify-between text-sm text-(--color-foreground-muted)">
-                              <span>Alış: {item.metadata.buy.toFixed(4)}</span>
-                              <span>Satış: {item.metadata.sell.toFixed(4)}</span>
+                {displayedForexData.map((item) => {
+                  const favoriteKey = getFavoriteKey(item.symbol, 'forex')
+                  const isFavorite = favoriteStatuses[favoriteKey] || false
+                  const isLoading = favoriteLoading[favoriteKey] || false
+                  return (
+                  <div key={item.symbol} className="relative">
+                    <Link href={`/piyasalar/${getSymbolSlug(item)}`}>
+                      <Card className="hover:border-primary transition-colors cursor-pointer h-full">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-lg">{item.symbol}</CardTitle>
+                              {item.name && <CardDescription>{item.name}</CardDescription>}
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                            <span
+                              className={`flex items-center gap-1 text-sm font-semibold ${
+                                item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
+                              }`}
+                            >
+                              {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                              {formatChange(item.changePercent)}
+                            </span>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className={`text-2xl font-bold rounded px-1 ${getPriceAnimationClass(item)}`}>{formatPrice(item)}</div>
+                            {item.metadata?.buy && item.metadata?.sell && (
+                              <div className="flex justify-between text-sm text-(--color-foreground-muted)">
+                                <span>Alış: {item.metadata.buy.toFixed(4)}</span>
+                                <span>Satış: {item.metadata.sell.toFixed(4)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 z-10"
+                      onClick={(e) => handleToggleFavorite(e, item)}
+                      disabled={isLoading}
+                    >
+                      <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                    </Button>
+                  </div>
+                  )
+                })}
               </div>
               {displayedForex < filteredForex.length && (
                 <div ref={loadMoreForexRef} className="flex justify-center py-4">
@@ -613,13 +705,18 @@ export default function MarketsClientPage() {
                     <div className="col-span-4 md:col-span-2 text-right">Fiyat</div>
                     <div className="col-span-2 md:col-span-2 text-right hidden lg:block">Alış</div>
                     <div className="col-span-2 md:col-span-2 text-right hidden lg:block">Satış</div>
-                    <div className="col-span-2 md:col-span-3 text-right">% Fark</div>
+                    <div className="col-span-2 md:col-span-2 text-right">% Fark</div>
+                    <div className="col-span-1 md:col-span-1"></div>
                   </div>
-                  {displayedForexData.map((item) => (
+                  {displayedForexData.map((item) => {
+                    const favoriteKey = getFavoriteKey(item.symbol, 'forex')
+                    const isFavorite = favoriteStatuses[favoriteKey] || false
+                    const isLoading = favoriteLoading[favoriteKey] || false
+                    return (
                     <Link
                       key={item.symbol}
                       href={`/piyasalar/${getSymbolSlug(item)}`}
-                      className="grid grid-cols-12 gap-2 p-2 hover:bg-(--color-surface) transition-colors cursor-pointer text-sm"
+                      className="grid grid-cols-12 gap-2 p-2 hover:bg-(--color-surface) transition-colors text-sm cursor-pointer"
                     >
                       <div className="col-span-4 md:col-span-3 font-semibold">{item.name || item.symbol}</div>
                       <div className={`col-span-4 md:col-span-2 text-right font-bold rounded px-1 ${getPriceAnimationClass(item)}`}>{formatPrice(item)}</div>
@@ -629,11 +726,22 @@ export default function MarketsClientPage() {
                       <div className="hidden lg:block col-span-2 text-right text-(--color-foreground-muted)">
                         {item.metadata?.sell ? item.metadata.sell.toFixed(4) : '-'}
                       </div>
-                      <div className={`col-span-4 md:col-span-3 text-right font-semibold flex items-center justify-end gap-1 ${
+                      <div className={`col-span-2 md:col-span-2 text-right font-semibold flex items-center justify-end gap-1 ${
                         item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
                       }`}>
                         {item.isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                         {formatChange(item.changePercent)}
+                      </div>
+                      <div className="col-span-1 md:col-span-1 flex items-center justify-center" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => handleToggleFavorite(e, item)}
+                          disabled={isLoading}
+                        >
+                          <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                        </Button>
                       </div>
                       {/* Mobilde detayları göster */}
                       <div className="md:hidden col-span-12 mt-2 pt-2 border-t border-(--color-border) text-xs">
@@ -653,7 +761,7 @@ export default function MarketsClientPage() {
                         </div>
                       </div>
                     </Link>
-                  ))}
+                  )})}
                   {displayedForex < filteredForex.length && (
                     <div ref={loadMoreForexRef} className="flex justify-center py-4">
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -731,36 +839,52 @@ export default function MarketsClientPage() {
           ) : viewMode === "grid" ? (
             <>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {displayedCryptoData.map((item) => (
-                  <Link key={item.symbol} href={`/piyasalar/${getSymbolSlug(item)}`}>
-                    <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-lg">{item.symbol}</CardTitle>
-                            {item.name && <CardDescription>{item.name}</CardDescription>}
+                {displayedCryptoData.map((item) => {
+                  const favoriteKey = getFavoriteKey(item.symbol, 'crypto')
+                  const isFavorite = favoriteStatuses[favoriteKey] || false
+                  const isLoading = favoriteLoading[favoriteKey] || false
+                  return (
+                  <div key={item.symbol} className="relative">
+                    <Link href={`/piyasalar/${getSymbolSlug(item)}`}>
+                      <Card className="hover:border-primary transition-colors cursor-pointer h-full">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-lg">{item.symbol}</CardTitle>
+                              {item.name && <CardDescription>{item.name}</CardDescription>}
+                            </div>
+                            <span
+                              className={`flex items-center gap-1 text-sm font-semibold ${
+                                item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
+                              }`}
+                            >
+                              {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                              {formatChange(item.changePercent)}
+                            </span>
                           </div>
-                          <span
-                            className={`flex items-center gap-1 text-sm font-semibold ${
-                              item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
-                            }`}
-                          >
-                            {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                            {formatChange(item.changePercent)}
-                          </span>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className={`text-2xl font-bold rounded px-1 ${getPriceAnimationClass(item)}`}>{formatPrice(item)}</div>
-                          {item.metadata?.marketCap && (
-                            <div className="text-sm text-(--color-foreground-muted)">Piyasa Değeri: {item.metadata.marketCap}</div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className={`text-2xl font-bold rounded px-1 ${getPriceAnimationClass(item)}`}>{formatPrice(item)}</div>
+                            {item.metadata?.marketCap && (
+                              <div className="text-sm text-(--color-foreground-muted)">Piyasa Değeri: {item.metadata.marketCap}</div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 z-10"
+                      onClick={(e) => handleToggleFavorite(e, item)}
+                      disabled={isLoading}
+                    >
+                      <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                    </Button>
+                  </div>
+                  )
+                })}
               </div>
               {displayedCrypto < filteredCrypto.length && (
                 <div ref={loadMoreCryptoRef} className="flex justify-center py-4">
@@ -908,25 +1032,30 @@ export default function MarketsClientPage() {
               ) : viewMode === "grid" ? (
             <>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {displayedStocksData.map((item) => (
-                  <Link key={item.symbol} href={`/piyasalar/${getSymbolSlug(item)}`}>
-                    <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-lg">{item.symbol}</CardTitle>
-                            {item.name && <CardDescription>{item.name}</CardDescription>}
+                {displayedStocksData.map((item) => {
+                  const favoriteKey = getFavoriteKey(item.symbol, 'stock')
+                  const isFavorite = favoriteStatuses[favoriteKey] || false
+                  const isLoading = favoriteLoading[favoriteKey] || false
+                  return (
+                  <div key={item.symbol} className="relative">
+                    <Link href={`/piyasalar/${getSymbolSlug(item)}`}>
+                      <Card className="hover:border-primary transition-colors cursor-pointer h-full">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-lg">{item.symbol}</CardTitle>
+                              {item.name && <CardDescription>{item.name}</CardDescription>}
+                            </div>
+                            <span
+                              className={`flex items-center gap-1 text-sm font-semibold ${
+                                item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
+                              }`}
+                            >
+                              {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                              {formatChange(item.changePercent)}
+                            </span>
                           </div>
-                          <span
-                            className={`flex items-center gap-1 text-sm font-semibold ${
-                              item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
-                            }`}
-                          >
-                            {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                            {formatChange(item.changePercent)}
-                          </span>
-                        </div>
-                      </CardHeader>
+                        </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
                           <div className="flex items-end justify-between gap-2">
@@ -1001,7 +1130,18 @@ export default function MarketsClientPage() {
                       </CardContent>
                     </Card>
                   </Link>
-                ))}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 z-10"
+                      onClick={(e) => handleToggleFavorite(e, item)}
+                      disabled={isLoading}
+                    >
+                      <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                    </Button>
+                  </div>
+                  )
+                })}
               </div>
               {displayedStocks < filteredStocks.length && (
                 <div ref={loadMoreStocksRef} className="flex justify-center py-4">
@@ -1025,8 +1165,13 @@ export default function MarketsClientPage() {
                       <div className="col-span-2 min-w-[120px] text-right">Hacim</div>
                       <div className="col-span-1 min-w-[80px] text-right">% Fark</div>
                       <div className="col-span-1 min-w-[60px] text-right">Saat</div>
+                      <div className="col-span-1 min-w-[40px]"></div>
                     </div>
-                    {displayedStocksData.map((item) => (
+                    {displayedStocksData.map((item) => {
+                      const favoriteKey = getFavoriteKey(item.symbol, 'stock')
+                      const isFavorite = favoriteStatuses[favoriteKey] || false
+                      const isLoading = favoriteLoading[favoriteKey] || false
+                      return (
                       <Link
                         key={item.symbol}
                         href={`/piyasalar/${getSymbolSlug(item)}`}
@@ -1067,8 +1212,20 @@ export default function MarketsClientPage() {
                         <div className="col-span-1 min-w-[60px] text-right text-(--color-foreground-muted) text-xs">
                           {item.metadata?.time || '-'}
                         </div>
+                        <div className="col-span-1 min-w-[40px] flex items-center justify-center" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => handleToggleFavorite(e, item)}
+                            disabled={isLoading}
+                          >
+                            <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                          </Button>
+                        </div>
                       </Link>
-                    ))}
+                      )
+                    })}
                   {displayedStocks < filteredStocks.length && (
                     <div ref={loadMoreStocksRef} className="flex justify-center py-4">
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -1139,39 +1296,52 @@ export default function MarketsClientPage() {
           ) : viewMode === "grid" ? (
             <>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {displayedCommoditiesData.map((item) => (
-                  <Link
-                    key={item.symbol}
-                    href={`/piyasalar/${getSymbolSlug(item)}`}
-                  >
-                    <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{item.name || item.symbol}</CardTitle>
-                          <span
-                            className={`flex items-center gap-1 text-sm font-semibold ${
-                              item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
-                            }`}
-                          >
-                            {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                            {formatChange(item.changePercent)}
-                          </span>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className={`text-2xl font-bold rounded px-1 ${getPriceAnimationClass(item)}`}>{formatPrice(item)}</div>
-                          {item.metadata?.buy && item.metadata?.sell && (
-                            <div className="flex justify-between text-sm text-(--color-foreground-muted)">
-                              <span>Alış: {item.metadata.buy.toFixed(2)} ₺</span>
-                              <span>Satış: {item.metadata.sell.toFixed(2)} ₺</span>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                {displayedCommoditiesData.map((item) => {
+                  const favoriteKey = getFavoriteKey(item.symbol, 'commodity')
+                  const isFavorite = favoriteStatuses[favoriteKey] || false
+                  const isLoading = favoriteLoading[favoriteKey] || false
+                  return (
+                  <div key={item.symbol} className="relative">
+                    <Link href={`/piyasalar/${getSymbolSlug(item)}`}>
+                      <Card className="hover:border-primary transition-colors cursor-pointer h-full">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">{item.name || item.symbol}</CardTitle>
+                            <span
+                              className={`flex items-center gap-1 text-sm font-semibold ${
+                                item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
+                              }`}
+                            >
+                              {item.isUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                              {formatChange(item.changePercent)}
+                            </span>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className={`text-2xl font-bold rounded px-1 ${getPriceAnimationClass(item)}`}>{formatPrice(item)}</div>
+                            {item.metadata?.buy && item.metadata?.sell && (
+                              <div className="flex justify-between text-sm text-(--color-foreground-muted)">
+                                <span>Alış: {item.metadata.buy.toFixed(2)} ₺</span>
+                                <span>Satış: {item.metadata.sell.toFixed(2)} ₺</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 z-10"
+                      onClick={(e) => handleToggleFavorite(e, item)}
+                      disabled={isLoading}
+                    >
+                      <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                    </Button>
+                  </div>
+                  )
+                })}
               </div>
               {displayedCommodities < filteredCommodities.length && (
                 <div ref={loadMoreCommoditiesRef} className="flex justify-center py-4">
@@ -1188,9 +1358,14 @@ export default function MarketsClientPage() {
                     <div className="col-span-4 md:col-span-4">Emtia</div>
                     <div className="col-span-2 md:col-span-2 text-right">Alış</div>
                     <div className="col-span-2 md:col-span-2 text-right">Satış</div>
-                    <div className="col-span-4 md:col-span-4 text-right">% Fark</div>
+                    <div className="col-span-3 md:col-span-3 text-right">% Fark</div>
+                    <div className="col-span-1 md:col-span-1"></div>
                   </div>
-                  {displayedCommoditiesData.map((item) => (
+                  {displayedCommoditiesData.map((item) => {
+                    const favoriteKey = getFavoriteKey(item.symbol, 'commodity')
+                    const isFavorite = favoriteStatuses[favoriteKey] || false
+                    const isLoading = favoriteLoading[favoriteKey] || false
+                    return (
                     <Link
                       key={item.symbol}
                       href={`/piyasalar/${getSymbolSlug(item)}`}
@@ -1203,14 +1378,26 @@ export default function MarketsClientPage() {
                       <div className={`col-span-2 md:col-span-2 text-right font-bold text-xs rounded px-1 ${getPriceAnimationClass(item)}`}>
                         {item.metadata?.sell ? `${item.metadata.sell.toFixed(2)} ₺` : '-'}
                       </div>
-                      <div className={`col-span-4 md:col-span-4 text-right font-semibold flex items-center justify-end gap-1 text-xs ${
+                      <div className={`col-span-3 md:col-span-3 text-right font-semibold flex items-center justify-end gap-1 text-xs ${
                         item.isUp ? "text-(--color-success)" : "text-(--color-danger)"
                       }`}>
                         {item.isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                         {formatChange(item.changePercent)}
                       </div>
+                      <div className="col-span-1 md:col-span-1 flex items-center justify-center" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => handleToggleFavorite(e, item)}
+                          disabled={isLoading}
+                        >
+                          <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                        </Button>
+                      </div>
                     </Link>
-                  ))}
+                    )
+                  })}
                   {displayedCommodities < filteredCommodities.length && (
                     <div ref={loadMoreCommoditiesRef} className="flex justify-center py-4">
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

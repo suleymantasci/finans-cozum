@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Search, X } from "lucide-react"
-import { tools, searchTools, getCategories, iconMap } from "@/lib/tools/tools"
+import { tools, searchTools, getCategories, getIconForTool } from "@/lib/tools/tools"
 
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -108,7 +108,7 @@ export default function ToolsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredTools.map((tool) => {
-            const IconComponent = iconMap[tool.icon]
+            const IconComponent = getIconForTool(tool.icon)
             
             return (
               <Link key={tool.id} href={`/araclar/${tool.slug}`}>

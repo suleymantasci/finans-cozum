@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { User, Bell, Bookmark, Calendar, Mail, Phone, Edit2, Save, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,10 +12,15 @@ import Link from "next/link"
 import { RequireAuth } from "@/components/auth/require-auth"
 import { useAuth } from "@/contexts/auth-context"
 import { favoriteNewsApi } from "@/lib/favorite-news-api"
+import { favoriteMarketsApi, FavoriteMarket } from "@/lib/favorite-markets-api"
+import { favoriteToolsApi, FavoriteTool } from "@/lib/favorite-tools-api"
+import { marketApi, MarketDataItem } from "@/lib/market-api"
 import { newsApi, News } from "@/lib/news-api"
-import { useEffect } from "react"
+import { getToolIcon } from "@/components/icons/tool-icons"
 import { formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
+import { TrendingUp, TrendingDown } from "lucide-react"
+import { toast } from "sonner"
 
 function ProfilPageContent() {
   const [isEditing, setIsEditing] = useState(false)
@@ -26,10 +31,14 @@ function ProfilPageContent() {
   })
   const [savedNews, setSavedNews] = useState<News[]>([])
   const [isLoadingNews, setIsLoadingNews] = useState(true)
-
-  useEffect(() => {
-    loadFavoriteNews()
-  }, [])
+  const [favoriteMarkets, setFavoriteMarkets] = useState<FavoriteMarket[]>([])
+  const [marketData, setMarketData] = useState<MarketDataItem[]>([])
+  const [isLoadingMarkets, setIsLoadingMarkets] = useState(true)
+  const [favoriteTools, setFavoriteTools] = useState<FavoriteTool[]>([])
+  const [isLoadingTools, setIsLoadingTools] = useState(true)
+  
+  // React Strict Mode'da çift çağrıları önlemek için ref kullan
+  const hasLoadedRef = useRef(false)
 
   const loadFavoriteNews = async () => {
     try {
@@ -43,6 +52,50 @@ function ProfilPageContent() {
     }
   }
 
+  const loadFavoriteMarkets = async () => {
+    try {
+      setIsLoadingMarkets(true)
+      const favorites = await favoriteMarketsApi.getFavorites()
+      setFavoriteMarkets(favorites)
+      
+      // Tüm piyasa verilerini getir
+      const allMarketData = await marketApi.getAllMarketData()
+      const allMarkets: MarketDataItem[] = [
+        ...allMarketData.forex,
+        ...allMarketData.crypto,
+        ...allMarketData.stocks,
+        ...allMarketData.commodities,
+      ]
+      setMarketData(allMarkets)
+    } catch (error) {
+      console.error('Favori piyasalar yüklenemedi:', error)
+    } finally {
+      setIsLoadingMarkets(false)
+    }
+  }
+
+  const loadFavoriteTools = async () => {
+    try {
+      setIsLoadingTools(true)
+      const tools = await favoriteToolsApi.getFavorites()
+      setFavoriteTools(tools)
+    } catch (error) {
+      console.error('Favori araçlar yüklenemedi:', error)
+    } finally {
+      setIsLoadingTools(false)
+    }
+  }
+
+  useEffect(() => {
+    // React Strict Mode'da çift çağrıları önle
+    if (hasLoadedRef.current) return
+    hasLoadedRef.current = true
+    
+    loadFavoriteNews()
+    loadFavoriteMarkets()
+    loadFavoriteTools()
+  }, [])
+
   const handleRemoveFavorite = async (newsId: string) => {
     try {
       await favoriteNewsApi.removeFavorite(newsId)
@@ -52,6 +105,50 @@ function ProfilPageContent() {
       console.error('Haber favorilerden kaldırılamadı:', error)
     }
   }
+
+  const handleRemoveFavoriteMarket = async (symbol: string, category: string) => {
+    try {
+      await favoriteMarketsApi.removeFavorite(symbol, category as 'forex' | 'crypto' | 'stock' | 'commodity')
+      setFavoriteMarkets(favoriteMarkets.filter(f => !(f.symbol === symbol && f.category === category)))
+      toast.success('Piyasa favorilerden kaldırıldı')
+    } catch (error) {
+      console.error('Piyasa favorilerden kaldırılamadı:', error)
+      toast.error('Bir hata oluştu')
+    }
+  }
+
+  const handleRemoveFavoriteTool = async (toolId: string) => {
+    try {
+      await favoriteToolsApi.removeFavorite(toolId)
+      setFavoriteTools(favoriteTools.filter(t => t.toolId !== toolId))
+      toast.success('Araç favorilerden kaldırıldı')
+    } catch (error) {
+      console.error('Araç favorilerden kaldırılamadı:', error)
+      toast.error('Bir hata oluştu')
+    }
+  }
+
+  const getSymbolSlug = (item: MarketDataItem) => {
+    if (item.category === 'forex') {
+      return item.symbol.toLowerCase().replace(/\//g, '-')
+    } else if (item.category === 'crypto') {
+      return `${item.symbol.toLowerCase()}-usd`
+    } else if (item.category === 'commodity') {
+      return item.symbol.toLowerCase().replace(/_/g, '-')
+    }
+    return item.symbol.toLowerCase()
+  }
+
+  // Favori piyasaları gerçek verilerle eşleştir
+  const favoriteMarketsWithData = favoriteMarkets.map(fav => {
+    const market = marketData.find(
+      m => m.symbol === fav.symbol && m.category === fav.category
+    )
+    return {
+      ...fav,
+      market,
+    }
+  }).filter(item => item.market) // Sadece market verisi olanları göster
 
   const formatTimeAgo = (date: string | Date | undefined) => {
     if (!date) return '--'
@@ -68,6 +165,70 @@ function ProfilPageContent() {
       return item.category.name
     }
     return 'Genel'
+  }
+
+  const MarketCategoryList = ({
+    favorites,
+    getSymbolSlug,
+    handleRemove,
+  }: {
+    favorites: typeof favoriteMarketsWithData
+    getSymbolSlug: (item: MarketDataItem) => string
+    handleRemove: (symbol: string, category: string) => void
+  }) => {
+    const validFavorites = favorites.filter((f): f is typeof f & { market: MarketDataItem } => !!f.market)
+
+    if (validFavorites.length === 0) {
+      return (
+        <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+          Bu kategoride favori piyasanız bulunmamaktadır
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-3">
+        {validFavorites.map((fav) => {
+          const market = fav.market
+          return (
+            <div key={`${fav.symbol}-${fav.category}`} className="group flex items-center justify-between rounded-lg border p-4 transition-all hover:border-(--color-primary) hover:shadow-md">
+              <Link href={`/piyasalar/${getSymbolSlug(market)}`} className="flex-1 flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="mb-1 font-semibold group-hover:text-(--color-primary)">{market.symbol}</h3>
+                  <p className="text-sm text-(--color-foreground-muted)">{market.name || market.symbol}</p>
+                </div>
+                <div className="text-right">
+                  <p className="mb-1 font-semibold">
+                    {market.category === 'crypto' ? '$' : market.category === 'commodity' && market.symbol === 'ONS_ALTIN' ? '$' : '₺'}
+                    {market.price.toLocaleString("tr-TR", { 
+                      minimumFractionDigits: market.category === 'forex' ? 4 : 2,
+                      maximumFractionDigits: market.category === 'forex' ? 4 : 2
+                    })}
+                  </p>
+                  <p
+                    className={`text-sm font-medium flex items-center justify-end gap-1 ${
+                      market.isUp ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {market.isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {market.changePercent > 0 ? "+" : ""}
+                    {market.changePercent.toFixed(2)}%
+                  </p>
+                </div>
+              </Link>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="ml-4 shrink-0"
+                onClick={() => handleRemove(fav.symbol, fav.category)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )
+        })}
+      </div>
+    )
   }
 
   const followedEconomicEvents = [
@@ -137,46 +298,7 @@ function ProfilPageContent() {
     },
   ]
 
-  const favoritedMarkets = [
-    {
-      id: "1",
-      symbol: "USD/TRY",
-      name: "Amerikan Doları / Türk Lirası",
-      price: 38.4825,
-      change: 0.13,
-    },
-    {
-      id: "2",
-      symbol: "EUR/TRY",
-      name: "Euro / Türk Lirası",
-      price: 42.15,
-      change: 0.25,
-    },
-    {
-      id: "3",
-      symbol: "BTC/USD",
-      name: "Bitcoin / Amerikan Doları",
-      price: 98245.32,
-      change: -1.2,
-    },
-  ]
 
-  const favoritedTools = [
-    {
-      id: "1",
-      title: "Kredi Hesaplama",
-      description: "İhtiyaç, konut ve taşıt kredisi hesaplama",
-      slug: "kredi-hesaplama",
-      icon: "calculator",
-    },
-    {
-      id: "2",
-      title: "Döviz Çevirici",
-      description: "Anlık kurlarla döviz çevirisi",
-      slug: "doviz-cevirici",
-      icon: "exchange",
-    },
-  ]
 
   const handleSave = () => {
     setIsEditing(false)
@@ -298,34 +420,56 @@ function ProfilPageContent() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {favoritedMarkets.map((market) => (
-                        <Link key={market.id} href={`/piyasalar/${market.symbol.toLowerCase().replace(/\//g, "-")}`}>
-                          <div className="group flex items-center justify-between rounded-lg border p-4 transition-all hover:border-(--color-primary) hover:shadow-md">
-                            <div className="flex-1">
-                              <h3 className="mb-1 font-semibold group-hover:text-(--color-primary)">{market.symbol}</h3>
-                              <p className="text-sm text-(--color-foreground-muted)">{market.name}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="mb-1 font-semibold">
-                                {market.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                              </p>
-                              <p
-                                className={`text-sm font-medium ${
-                                  market.change > 0 ? "text-green-600" : "text-red-600"
-                                }`}
-                              >
-                                {market.change > 0 ? "+" : ""}
-                                {market.change}%
-                              </p>
-                            </div>
-                            <Button variant="ghost" size="icon" className="ml-4 shrink-0">
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+                    {isLoadingMarkets ? (
+                      <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+                        Yükleniyor...
+                      </div>
+                    ) : favoriteMarketsWithData.length === 0 ? (
+                      <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+                        Henüz favori piyasa yok. Piyasaları favorilere eklemek için piyasa listesi veya detay sayfasındaki yıldız ikonunu kullanın.
+                      </div>
+                    ) : (
+                      <Tabs defaultValue="forex" className="w-full">
+                        <TabsList className="grid w-full grid-cols-4">
+                          <TabsTrigger value="forex">Döviz</TabsTrigger>
+                          <TabsTrigger value="crypto">Kripto</TabsTrigger>
+                          <TabsTrigger value="stock">Hisse</TabsTrigger>
+                          <TabsTrigger value="commodity">Emtia</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="forex" className="mt-4">
+                          <MarketCategoryList
+                            favorites={favoriteMarketsWithData.filter(f => f.category === "forex")}
+                            getSymbolSlug={getSymbolSlug}
+                            handleRemove={handleRemoveFavoriteMarket}
+                          />
+                        </TabsContent>
+                        
+                        <TabsContent value="crypto" className="mt-4">
+                          <MarketCategoryList
+                            favorites={favoriteMarketsWithData.filter(f => f.category === "crypto")}
+                            getSymbolSlug={getSymbolSlug}
+                            handleRemove={handleRemoveFavoriteMarket}
+                          />
+                        </TabsContent>
+                        
+                        <TabsContent value="stock" className="mt-4">
+                          <MarketCategoryList
+                            favorites={favoriteMarketsWithData.filter(f => f.category === "stock")}
+                            getSymbolSlug={getSymbolSlug}
+                            handleRemove={handleRemoveFavoriteMarket}
+                          />
+                        </TabsContent>
+                        
+                        <TabsContent value="commodity" className="mt-4">
+                          <MarketCategoryList
+                            favorites={favoriteMarketsWithData.filter(f => f.category === "commodity")}
+                            getSymbolSlug={getSymbolSlug}
+                            handleRemove={handleRemoveFavoriteMarket}
+                          />
+                        </TabsContent>
+                      </Tabs>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -343,54 +487,42 @@ function ProfilPageContent() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {favoritedTools.map((tool) => (
-                        <Link key={tool.id} href={`/araclar/${tool.slug}`}>
-                          <div className="group flex items-start gap-4 rounded-lg border p-4 transition-all hover:border-(--color-primary) hover:shadow-md">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-(--color-primary)/10">
-                              {tool.icon === "calculator" ? (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6 text-(--color-primary)"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                                  />
-                                </svg>
-                              ) : (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6 text-(--color-primary)"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                                  />
-                                </svg>
-                              )}
+                    {isLoadingTools ? (
+                      <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+                        Yükleniyor...
+                      </div>
+                    ) : favoriteTools.length === 0 ? (
+                      <div className="text-center py-8 text-sm text-(--color-foreground-muted)">
+                        Henüz favori araç yok. Araçları favorilere eklemek için araç detay sayfasındaki "Favorilere Ekle" butonunu kullanın.
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {favoriteTools.map((favoriteTool) => {
+                          const IconComponent = getToolIcon(favoriteTool.tool.icon)
+                          return (
+                            <div key={favoriteTool.id} className="group flex items-start gap-4 rounded-lg border p-4 transition-all hover:border-(--color-primary) hover:shadow-md">
+                              <Link href={`/araclar/${favoriteTool.tool.slug}`} className="flex-1 flex items-start gap-4">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-(--color-primary)/10">
+                                  <IconComponent className="h-6 w-6 text-(--color-primary)" />
+                                </div>
+                                <div className="flex-1">
+                                  <h3 className="mb-1 font-semibold group-hover:text-(--color-primary)">{favoriteTool.tool.name}</h3>
+                                  <p className="text-sm text-(--color-foreground-muted)">{favoriteTool.tool.description || 'Araç açıklaması bulunmuyor'}</p>
+                                </div>
+                              </Link>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="shrink-0"
+                                onClick={() => handleRemoveFavoriteTool(favoriteTool.toolId)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
-                            <div className="flex-1">
-                              <h3 className="mb-1 font-semibold group-hover:text-(--color-primary)">{tool.title}</h3>
-                              <p className="text-sm text-(--color-foreground-muted)">{tool.description}</p>
-                            </div>
-                            <Button variant="ghost" size="icon" className="shrink-0">
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -653,7 +785,7 @@ function ProfilPageContent() {
                         </div>
                         <div className="rounded-lg border bg-(--color-muted) p-4 text-center">
                           <p className="text-2xl font-bold text-(--color-primary)">
-                            {favoritedMarkets.length + favoritedTools.length}
+                            {favoriteMarkets.length + favoriteTools.length}
                           </p>
                           <p className="text-sm text-(--color-foreground-muted)">Favori Araç/Piyasa</p>
                         </div>

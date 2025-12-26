@@ -163,11 +163,11 @@ export class HaremAltinProvider {
 
       // İkinci sütun: Alış fiyatı (span.price içinde)
       const buyPriceText = cells.eq(1).find('span.price').text().trim() || cells.eq(1).text().trim();
-      const buyPrice = this.parsePrice(buyPriceText);
+      const buyPrice = this.parsePrice(buyPriceText, name);
 
       // Üçüncü sütun: Satış fiyatı (span.price içinde)
       const sellPriceText = cells.eq(2).find('span.price').text().trim() || cells.eq(2).text().trim();
-      const sellPrice = this.parsePrice(sellPriceText);
+      const sellPrice = this.parsePrice(sellPriceText, name);
 
       // Dördüncü sütun: Değişim yüzdesi (span.rate içinde, % işareti ile)
       const changePercentText = cells.eq(3).find('span.rate').text().trim() || cells.eq(3).text().trim();
@@ -340,72 +340,21 @@ export class HaremAltinProvider {
 
   /**
    * Fiyat string'ini number'a çevir
-   * Türk formatı: 6.234,56 -> 6234.56
-   * Dikkat: Çeyrek, yarım, tam gibi değerler binlik olabilir (9.930, 19.840, 39.600)
+   * Harem Altın formatı: binlik ayırıcı nokta, ondalık virgül (6.234,56 -> 6234.56)
+   * Altın fiyatları genellikle binlik ayırıcı olarak nokta kullanır (10.033 -> 10033)
    */
-  private parsePrice(priceStr: string): number {
+  private parsePrice(priceStr: string, itemName: string = ''): number {
+
     if (!priceStr) return 0;
     
-    // TL, $, virgül, nokta temizle
+    // TL, $ işaretlerini temizle
     let cleaned = priceStr
       .replace(/[₺$TL]/g, '')
       .trim();
     
-    // Hem nokta hem virgül varsa: Türk formatı (6.234,56)
-    if (cleaned.includes(',') && cleaned.includes('.')) {
-      // Nokta sayısını kontrol et
-      const dotCount = (cleaned.match(/\./g) || []).length;
-      const commaCount = (cleaned.match(/,/g) || []).length;
-      
-      // Eğer birden fazla nokta varsa, nokta binlik ayırıcıdır
-      if (dotCount > 1) {
-        // 6.234,56 formatı - noktaları kaldır, virgülü noktaya çevir
-        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-      } else {
-        // Tek nokta ve virgül: 6.234,56 formatı
-        // Son virgülden sonraki kısım ondalık olmalı (genellikle 2 haneli)
-        const lastCommaIndex = cleaned.lastIndexOf(',');
-        const afterComma = cleaned.substring(lastCommaIndex + 1);
-        
-        // Eğer virgülden sonra 2-3 hane varsa, ondalık olabilir
-        // Ama çeyrek, yarım, tam gibi değerler için binlik olabilir
-        if (afterComma.length <= 3 && parseFloat(afterComma) < 100) {
-          // Ondalık format: 6.234,56
-          cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-        } else {
-          // Binlik format: virgül binlik ayırıcı olabilir (nadir)
-          cleaned = cleaned.replace(/,/g, '');
-        }
-      }
-    } else if (cleaned.includes(',')) {
-      // Sadece virgül varsa
-      const commaIndex = cleaned.indexOf(',');
-      const afterComma = cleaned.substring(commaIndex + 1);
-      
-      // Virgülden sonra 2-3 hane ve küçük sayı ise ondalık
-      if (afterComma.length <= 3 && parseFloat(afterComma) < 100) {
-        cleaned = cleaned.replace(',', '.');
-      } else {
-        // Binlik ayırıcı olabilir (nadir, genellikle nokta kullanılır)
-        cleaned = cleaned.replace(',', '');
-      }
-    } else if (cleaned.includes('.')) {
-      // Sadece nokta varsa
-      const parts = cleaned.split('.');
-      if (parts.length > 2) {
-        // Birden fazla nokta = binlik ayırıcı
-        cleaned = cleaned.replace(/\./g, '');
-      } else if (parts.length === 2) {
-        // Tek nokta: ondalık veya binlik olabilir
-        // Eğer noktadan sonra 2-3 hane ve küçük sayı ise ondalık
-        if (parts[1].length <= 3 && parseFloat(parts[1]) < 100) {
-          // Ondalık format, olduğu gibi bırak
-        } else {
-          // Binlik ayırıcı olabilir
-          cleaned = cleaned.replace('.', '');
-        }
-      }
-    }
+    // Noktaları kaldır (binlik ayırıcı: 10.033 -> 10033)
+    // Virgülü noktaya çevir (ondalık ayırıcı: 6.234,56 -> 6234.56, 99,99 -> 99.99)
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
     
     const parsed = parseFloat(cleaned);
     return isNaN(parsed) ? 0 : parsed;

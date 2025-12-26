@@ -1,12 +1,15 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AdSlotDisplay } from '@/components/tools/AdSlotDisplay'
 import { Tool, ToolAdSlot } from '@/lib/tools-api'
 import { getToolComponent } from '@/components/tools/registry'
+import { favoriteToolsApi } from '@/lib/favorite-tools-api'
+import { useAuth } from '@/contexts/auth-context'
+import { toast } from 'sonner'
 
 interface ToolPageClientProps {
   tool: Tool
@@ -27,7 +30,52 @@ export function ToolPageClient({
   adSlotsByPosition,
 }: ToolPageClientProps) {
   const [isFavorite, setIsFavorite] = useState(false)
+  const [isLoadingFavorite, setIsLoadingFavorite] = useState(true)
+  const { user } = useAuth()
   const ToolComponent = getToolComponent(tool.component)
+
+  // Favori durumunu kontrol et
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!user) {
+        setIsLoadingFavorite(false)
+        return
+      }
+
+      try {
+        const result = await favoriteToolsApi.checkFavorite(tool.id)
+        setIsFavorite(result.isFavorite)
+      } catch (error) {
+        console.error('Favori durumu kontrol edilemedi:', error)
+      } finally {
+        setIsLoadingFavorite(false)
+      }
+    }
+
+    checkFavoriteStatus()
+  }, [tool.id, user])
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast.error('Favorilere eklemek için giriş yapmalısınız')
+      return
+    }
+
+    try {
+      if (isFavorite) {
+        await favoriteToolsApi.removeFavorite(tool.id)
+        setIsFavorite(false)
+        toast.success('Araç favorilerden kaldırıldı')
+      } else {
+        await favoriteToolsApi.addFavorite(tool.id)
+        setIsFavorite(true)
+        toast.success('Araç favorilere eklendi')
+      }
+    } catch (error: any) {
+      console.error('Favori işlemi başarısız:', error)
+      toast.error(error?.response?.data?.message || 'Bir hata oluştu')
+    }
+  }
 
   if (!ToolComponent) {
     return (
@@ -82,15 +130,18 @@ export function ToolPageClient({
                 </p>
               )}
             </div>
-            <Button
-              variant={isFavorite ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setIsFavorite(!isFavorite)}
-              className="shrink-0"
-            >
-              <Star className={`mr-2 h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-              {isFavorite ? 'Favorilerde' : 'Favorilere Ekle'}
-            </Button>
+            {user && (
+              <Button
+                variant={isFavorite ? 'default' : 'outline'}
+                size="sm"
+                onClick={handleToggleFavorite}
+                disabled={isLoadingFavorite}
+                className="shrink-0"
+              >
+                <Star className={`mr-2 h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+                {isFavorite ? 'Favorilerde' : 'Favorilere Ekle'}
+              </Button>
+            )}
           </div>
 
           <Card className="mb-6">

@@ -10,6 +10,8 @@
  */
 export type * from './models/User'
 export type * from './models/FavoriteNews'
+export type * from './models/FavoriteMarket'
+export type * from './models/FavoriteTool'
 export type * from './models/Category'
 export type * from './models/News'
 export type * from './models/NewsAdSlot'

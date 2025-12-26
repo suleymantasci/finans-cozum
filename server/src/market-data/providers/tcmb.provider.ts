@@ -82,6 +82,13 @@ export class TcmbProvider {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         date = today;
+        
+        // API'den çekilen veriyi cache'e ve DB'ye kaydet
+        if (forexData && forexData.length > 0) {
+          this.cacheService.set(this.CACHE_KEY, forexData, this.CACHE_TTL);
+          await this.saveForexDataToDb(forexData);
+          this.logger.log('TCMB döviz kurları API\'den çekildi ve cache/DB\'ye kaydedildi');
+        }
       }
     }
 

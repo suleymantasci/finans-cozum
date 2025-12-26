@@ -53,6 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   FavoriteNews: 'FavoriteNews',
+  FavoriteMarket: 'FavoriteMarket',
+  FavoriteTool: 'FavoriteTool',
   Category: 'Category',
   News: 'News',
   NewsAdSlot: 'NewsAdSlot',
@@ -109,6 +111,27 @@ export const FavoriteNewsScalarFieldEnum = {
 } as const
 
 export type FavoriteNewsScalarFieldEnum = (typeof FavoriteNewsScalarFieldEnum)[keyof typeof FavoriteNewsScalarFieldEnum]
+
+
+export const FavoriteMarketScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  symbol: 'symbol',
+  category: 'category',
+  createdAt: 'createdAt'
+} as const
+
+export type FavoriteMarketScalarFieldEnum = (typeof FavoriteMarketScalarFieldEnum)[keyof typeof FavoriteMarketScalarFieldEnum]
+
+
+export const FavoriteToolScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  toolId: 'toolId',
+  createdAt: 'createdAt'
+} as const
+
+export type FavoriteToolScalarFieldEnum = (typeof FavoriteToolScalarFieldEnum)[keyof typeof FavoriteToolScalarFieldEnum]
 
 
 export const CategoryScalarFieldEnum = {

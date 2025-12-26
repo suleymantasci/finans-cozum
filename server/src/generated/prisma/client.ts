@@ -48,6 +48,16 @@ export type User = Prisma.UserModel
  */
 export type FavoriteNews = Prisma.FavoriteNewsModel
 /**
+ * Model FavoriteMarket
+ * 
+ */
+export type FavoriteMarket = Prisma.FavoriteMarketModel
+/**
+ * Model FavoriteTool
+ * 
+ */
+export type FavoriteTool = Prisma.FavoriteToolModel
+/**
  * Model Category
  * 
  */

@@ -386,6 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   FavoriteNews: 'FavoriteNews',
+  FavoriteMarket: 'FavoriteMarket',
+  FavoriteTool: 'FavoriteTool',
   Category: 'Category',
   News: 'News',
   NewsAdSlot: 'NewsAdSlot',
@@ -412,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "favoriteNews" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData"
+    modelProps: "user" | "favoriteNews" | "favoriteMarket" | "favoriteTool" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -561,6 +563,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.FavoriteNewsCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.FavoriteNewsCountAggregateOutputType> | number
+        }
+      }
+    }
+    FavoriteMarket: {
+      payload: Prisma.$FavoriteMarketPayload<ExtArgs>
+      fields: Prisma.FavoriteMarketFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FavoriteMarketFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FavoriteMarketFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>
+        }
+        findFirst: {
+          args: Prisma.FavoriteMarketFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FavoriteMarketFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>
+        }
+        findMany: {
+          args: Prisma.FavoriteMarketFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>[]
+        }
+        create: {
+          args: Prisma.FavoriteMarketCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>
+        }
+        createMany: {
+          args: Prisma.FavoriteMarketCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FavoriteMarketCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>[]
+        }
+        delete: {
+          args: Prisma.FavoriteMarketDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>
+        }
+        update: {
+          args: Prisma.FavoriteMarketUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>
+        }
+        deleteMany: {
+          args: Prisma.FavoriteMarketDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FavoriteMarketUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FavoriteMarketUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>[]
+        }
+        upsert: {
+          args: Prisma.FavoriteMarketUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteMarketPayload>
+        }
+        aggregate: {
+          args: Prisma.FavoriteMarketAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFavoriteMarket>
+        }
+        groupBy: {
+          args: Prisma.FavoriteMarketGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteMarketGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FavoriteMarketCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteMarketCountAggregateOutputType> | number
+        }
+      }
+    }
+    FavoriteTool: {
+      payload: Prisma.$FavoriteToolPayload<ExtArgs>
+      fields: Prisma.FavoriteToolFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FavoriteToolFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FavoriteToolFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>
+        }
+        findFirst: {
+          args: Prisma.FavoriteToolFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FavoriteToolFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>
+        }
+        findMany: {
+          args: Prisma.FavoriteToolFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>[]
+        }
+        create: {
+          args: Prisma.FavoriteToolCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>
+        }
+        createMany: {
+          args: Prisma.FavoriteToolCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FavoriteToolCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>[]
+        }
+        delete: {
+          args: Prisma.FavoriteToolDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>
+        }
+        update: {
+          args: Prisma.FavoriteToolUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>
+        }
+        deleteMany: {
+          args: Prisma.FavoriteToolDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FavoriteToolUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FavoriteToolUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>[]
+        }
+        upsert: {
+          args: Prisma.FavoriteToolUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteToolPayload>
+        }
+        aggregate: {
+          args: Prisma.FavoriteToolAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFavoriteTool>
+        }
+        groupBy: {
+          args: Prisma.FavoriteToolGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteToolGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FavoriteToolCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteToolCountAggregateOutputType> | number
         }
       }
     }
@@ -1446,6 +1596,27 @@ export const FavoriteNewsScalarFieldEnum = {
 export type FavoriteNewsScalarFieldEnum = (typeof FavoriteNewsScalarFieldEnum)[keyof typeof FavoriteNewsScalarFieldEnum]
 
 
+export const FavoriteMarketScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  symbol: 'symbol',
+  category: 'category',
+  createdAt: 'createdAt'
+} as const
+
+export type FavoriteMarketScalarFieldEnum = (typeof FavoriteMarketScalarFieldEnum)[keyof typeof FavoriteMarketScalarFieldEnum]
+
+
+export const FavoriteToolScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  toolId: 'toolId',
+  createdAt: 'createdAt'
+} as const
+
+export type FavoriteToolScalarFieldEnum = (typeof FavoriteToolScalarFieldEnum)[keyof typeof FavoriteToolScalarFieldEnum]
+
+
 export const CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2005,6 +2176,8 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   favoriteNews?: Prisma.FavoriteNewsOmit
+  favoriteMarket?: Prisma.FavoriteMarketOmit
+  favoriteTool?: Prisma.FavoriteToolOmit
   category?: Prisma.CategoryOmit
   news?: Prisma.NewsOmit
   newsAdSlot?: Prisma.NewsAdSlotOmit

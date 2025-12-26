@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { ArrowLeft, Star, Bell, Share2, TrendingUp, TrendingDown, Calendar, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -11,26 +11,48 @@ import { marketApi, MarketDetailResponse } from "@/lib/market-api"
 import { toast } from "sonner"
 import { PriceChart } from "@/components/markets/PriceChart"
 import { RelatedMarkets } from "@/components/markets/RelatedMarkets"
+import { favoriteMarketsApi } from "@/lib/favorite-markets-api"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 interface MarketDetailClientProps {
   symbol: string
 }
 
 export default function MarketDetailClient({ symbol }: MarketDetailClientProps) {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
   const [timeRange, setTimeRange] = useState("1D")
   const [isFavorite, setIsFavorite] = useState(false)
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
   const [marketData, setMarketData] = useState<MarketDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadMarketData()
-    
-    // Her 30 saniyede bir güncelle
-    const interval = setInterval(loadMarketData, 30000)
-    
-    return () => clearInterval(interval)
-  }, [symbol])
+  const getCategoryFromType = (type: string): 'forex' | 'crypto' | 'stock' | 'commodity' => {
+    const categoryMap: Record<string, 'forex' | 'crypto' | 'stock' | 'commodity'> = {
+      'Döviz': 'forex',
+      'Kripto Para': 'crypto',
+      'Hisse Senedi': 'stock',
+      'Emtia': 'commodity',
+    }
+    return categoryMap[type] || 'forex'
+  }
+
+  const checkFavoriteStatus = useCallback(async (data: MarketDetailResponse) => {
+    if (!isAuthenticated) {
+      setIsFavorite(false)
+      return
+    }
+
+    try {
+      const category = getCategoryFromType(data.type)
+      const response = await favoriteMarketsApi.checkFavorite(data.symbol, category)
+      setIsFavorite(response.isFavorite)
+    } catch (error) {
+      setIsFavorite(false)
+    }
+  }, [isAuthenticated])
 
   const loadMarketData = async () => {
     try {
@@ -46,6 +68,56 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
       toast.error('Piyasa verisi yüklenemedi')
     } finally {
       setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadMarketData()
+    
+    // Her 30 saniyede bir güncelle
+    const interval = setInterval(loadMarketData, 30000)
+    
+    return () => clearInterval(interval)
+  }, [symbol])
+
+  // Market data ve authentication durumu değiştiğinde favori durumunu kontrol et
+  useEffect(() => {
+    if (marketData && isAuthenticated) {
+      checkFavoriteStatus(marketData)
+    } else if (!isAuthenticated) {
+      setIsFavorite(false)
+    }
+  }, [marketData, isAuthenticated, checkFavoriteStatus])
+
+  const handleToggleFavorite = async () => {
+    if (!marketData) return
+
+    if (!isAuthenticated) {
+      toast.error('Favorilere eklemek için giriş yapmanız gerekiyor', {
+        action: {
+          label: 'Giriş Yap',
+          onClick: () => router.push('/giris'),
+        },
+      })
+      return
+    }
+
+    setIsFavoriteLoading(true)
+    try {
+      const category = getCategoryFromType(marketData.type)
+      if (isFavorite) {
+        await favoriteMarketsApi.removeFavorite(marketData.symbol, category)
+        setIsFavorite(false)
+        toast.success('Piyasa favorilerden kaldırıldı')
+      } else {
+        await favoriteMarketsApi.addFavorite(marketData.symbol, category)
+        setIsFavorite(true)
+        toast.success('Piyasa favorilere eklendi')
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Bir hata oluştu')
+    } finally {
+      setIsFavoriteLoading(false)
     }
   }
 
@@ -134,7 +206,12 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
             </div>
 
             <div className="flex gap-2">
-              <Button variant={isFavorite ? "default" : "outline"} size="sm" onClick={() => setIsFavorite(!isFavorite)}>
+              <Button 
+                variant={isFavorite ? "default" : "outline"} 
+                size="sm" 
+                onClick={handleToggleFavorite}
+                disabled={isFavoriteLoading}
+              >
                 <Star className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                 {isFavorite ? "Favorilerde" : "Favorilere Ekle"}
               </Button>

@@ -32,6 +32,8 @@ model User {
 
   news          News[]
   favoriteNews  FavoriteNews[]
+  favoriteMarkets FavoriteMarket[]
+  favoriteTools FavoriteTool[]
 
   @@map("users")
 }
@@ -48,6 +50,34 @@ model FavoriteNews {
   @@index([userId])
   @@index([newsId])
   @@map("favorite_news")
+}
+
+model FavoriteMarket {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol    String   // Örn: "USD/TRY", "BTC", "AKBNK"
+  category  String   // "forex" | "crypto" | "stock" | "commodity"
+  createdAt DateTime @default(now())
+
+  @@unique([userId, symbol, category])
+  @@index([userId])
+  @@index([symbol, category])
+  @@map("favorite_markets")
+}
+
+model FavoriteTool {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId    String
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, toolId])
+  @@index([userId])
+  @@index([toolId])
+  @@map("favorite_tools")
 }
 
 enum NewsStatus {
@@ -234,6 +264,7 @@ model Tool {
   category   ToolCategory?  @relation(fields: [categoryId], references: [id])
   adSlots    ToolAdSlot[]
   dataSyncs  ToolDataSync[]
+  favoritedBy FavoriteTool[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

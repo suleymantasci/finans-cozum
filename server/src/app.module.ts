@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
 import { NewsModule } from './news/news.module';
 import { FavoriteNewsModule } from './favorite-news/favorite-news.module';
+import { FavoriteMarketsModule } from './favorite-markets/favorite-markets.module';
+import { FavoriteToolsModule } from './favorite-tools/favorite-tools.module';
 import { FilesModule } from './files/files.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ToolCategoriesModule } from './tool-categories/tool-categories.module';
@@ -40,6 +42,8 @@ import { MarketDataModule } from './market-data/market-data.module';
     CacheModule,
     MarketDataModule,
     FavoriteNewsModule,
+    FavoriteMarketsModule,
+    FavoriteToolsModule,
   ],
 })
 export class AppModule {}

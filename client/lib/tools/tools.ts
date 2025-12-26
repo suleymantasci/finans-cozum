@@ -1,12 +1,5 @@
-import { 
-  Calculator, 
-  Calendar, 
-  DollarSign, 
-  PiggyBank, 
-  CreditCard, 
-  Percent,
-  LucideIcon 
-} from "lucide-react"
+import { getToolIcon } from "@/components/icons/tool-icons"
+import type { LucideIcon } from "lucide-react"
 
 export interface Tool {
   id: string
@@ -96,14 +89,9 @@ export const tools: Tool[] = [
   },
 ]
 
-// Icon mapping
-export const iconMap: Record<string, LucideIcon> = {
-  Calculator,
-  Calendar,
-  DollarSign,
-  PiggyBank,
-  CreditCard,
-  Percent,
+// Icon mapping - yeni icon sistemi kullanıyor
+export function getIconForTool(iconName: string): LucideIcon {
+  return getToolIcon(iconName)
 }
 
 // Arama fonksiyonu
