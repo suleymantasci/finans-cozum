@@ -10,10 +10,10 @@ export function Footer() {
       { name: "Mevduat Hesaplama", href: "/araclar/mevduat-hesaplama" },
     ],
     piyasalar: [
-      { name: "Döviz Kurları", href: "/piyasalar/doviz" },
-      { name: "Kripto Paralar", href: "/piyasalar/kripto" },
-      { name: "Borsa", href: "/piyasalar/borsa" },
-      { name: "Altın Fiyatları", href: "/piyasalar/altin" },
+      { name: "Döviz Kurları", href: "/piyasalar?tab=forex" },
+      { name: "Kripto Paralar", href: "/piyasalar?tab=crypto" },
+      { name: "Borsa", href: "/piyasalar?tab=stocks" },
+      { name: "Altın Fiyatları", href: "/piyasalar?tab=commodities" },
     ],
     kurumsal: [
       { name: "Hakkımızda", href: "/hakkimizda" },
