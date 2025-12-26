@@ -209,6 +209,11 @@ export const toolsApi = {
     return api.get<Tool>(`/tools/slug/${slug}`);
   },
 
+  getFeatured: async (limit?: number): Promise<Tool[]> => {
+    const query = limit ? `?limit=${limit}` : '';
+    return api.get<Tool[]>(`/tools/featured${query}`);
+  },
+
   getOne: async (id: string): Promise<Tool> => {
     return api.get<Tool>(`/tools/${id}`);
   },
@@ -279,10 +284,6 @@ export const toolsApi = {
 
   applyTemplateToTools: async (templateId: string, toolIds: string[]): Promise<any> => {
     return authApi.post(`/ad-slot-templates/${templateId}/apply-to-tools`, { toolIds });
-  },
-
-  removeTemplateFromTools: async (templateId: string, toolIds: string[]): Promise<any> => {
-    return authApi.post(`/ad-slot-templates/${templateId}/remove-from-tools`, { toolIds });
   },
 
   removeTemplateFromTools: async (templateId: string, toolIds: string[]): Promise<any> => {

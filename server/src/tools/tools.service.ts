@@ -126,6 +126,23 @@ export class ToolsService {
     return tool;
   }
 
+  async findFeatured(limit?: number) {
+    return this.prisma.tool.findMany({
+      where: {
+        status: 'PUBLISHED',
+        isFeatured: true,
+      },
+      include: {
+        category: true,
+      },
+      orderBy: [
+        { order: 'asc' },
+        { name: 'asc' },
+      ],
+      take: limit || 6,
+    });
+  }
+
   async getToolData(id: string) {
     const tool = await this.findOne(id);
 

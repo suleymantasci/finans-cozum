@@ -33,6 +33,13 @@ export class ToolsController {
     return this.toolsService.findAll(status, categoryId, includeInactive === 'true');
   }
 
+  // Public: Featured araçları getir
+  @Get('featured')
+  async getFeatured(@Query('limit') limit?: string) {
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.toolsService.findFeatured(limitNum);
+  }
+
   // Public: Slug ile araç getir
   @Get('slug/:slug')
   async findBySlug(@Param('slug') slug: string) {
