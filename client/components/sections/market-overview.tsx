@@ -2,32 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, DollarSign, Euro, Bitcoin, Loader2 } from "lucide-react"
-import { useState, useEffect } from "react"
-import { marketApi, MarketDataItem } from "@/lib/market-api"
+import { MarketDataItem } from "@/lib/market-api"
+import { useMarketData } from "@/contexts/market-data-context"
 
 export function MarketOverview() {
-  const [marketData, setMarketData] = useState<MarketDataItem[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadMarketData()
-    
-    // Her 20 saniyede bir güncelle (cache süresi ile aynı)
-    const interval = setInterval(loadMarketData, 20000)
-    
-    return () => clearInterval(interval)
-  }, [])
-
-  const loadMarketData = async () => {
-    try {
-      const response = await marketApi.getTickerData()
-      setMarketData(response.items)
-      setLoading(false)
-    } catch (error) {
-      console.error('Market overview verileri yüklenemedi:', error)
-      setLoading(false)
-    }
-  }
+  const { tickerData: marketData, isLoading: loading } = useMarketData()
 
   // İstenen sembolleri bul
   const getItemBySymbol = (symbol: string): MarketDataItem | undefined => {

@@ -1,32 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { TrendingUp, TrendingDown, Loader2 } from "lucide-react"
-import { marketApi, MarketDataItem } from "@/lib/market-api"
+import { MarketDataItem } from "@/lib/market-api"
+import { useMarketData } from "@/contexts/market-data-context"
 
 export function LiveMarketTicker() {
-  const [marketData, setMarketData] = useState<MarketDataItem[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadMarketData()
-    
-    // Her 30 saniyede bir güncelle
-    const interval = setInterval(loadMarketData, 30000)
-    
-    return () => clearInterval(interval)
-  }, [])
-
-  const loadMarketData = async () => {
-    try {
-      const response = await marketApi.getTickerData()
-      setMarketData(response.items)
-      setLoading(false)
-    } catch (error) {
-      console.error('Ticker verileri yüklenemedi:', error)
-      setLoading(false)
-    }
-  }
+  const { tickerData: marketData, isLoading: loading } = useMarketData()
 
   const formatPrice = (item: MarketDataItem) => {
     if (item.category === 'crypto') {

@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { AuthProviderWrapper } from "@/components/auth-provider-wrapper"
+import { MarketDataProvider } from "@/contexts/market-data-context"
 import { Toaster } from "sonner"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -93,11 +94,13 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProviderWrapper>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <MarketDataProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+            </MarketDataProvider>
           </AuthProviderWrapper>
         </ThemeProvider>
         <Toaster position="top-right" richColors />
