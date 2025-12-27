@@ -571,43 +571,6 @@ function ProfilPageContent() {
                   </CardContent>
                 </Card>
 
-                {/* Temettü Takvimi */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>Temettü Takvimi</CardTitle>
-                        <CardDescription>Takip ettiğiniz temettü ödemeleri</CardDescription>
-                      </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href="/temettu-takvimi">Tümünü Gör</Link>
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {followedDividends.map((dividend) => (
-                        <div key={dividend.id} className="flex items-center gap-4 rounded-lg border p-3">
-                          <div className="text-center">
-                            <p className="text-xs text-(--color-foreground-muted)">{dividend.date}</p>
-                          </div>
-                          <div className="h-8 w-px bg-(--color-border)" />
-                          <div className="flex-1">
-                            <h4 className="mb-1 font-semibold text-sm">{dividend.company}</h4>
-                            <p className="text-xs text-(--color-foreground-muted)">{dividend.ticker}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-sm">{dividend.amount}</p>
-                            <p className="text-xs text-green-600">{dividend.yield}</p>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Bell className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
 
                 {/* Halka Arz Takvimi */}
                 <Card>
@@ -665,17 +628,6 @@ function ProfilPageContent() {
                         <p className="font-medium">Ekonomik Takvim Bildirimleri</p>
                         <p className="text-sm text-(--color-foreground-muted)">
                           Takip ettiğiniz ekonomik veriler için bildirim alın
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Aktif
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                      <div>
-                        <p className="font-medium">Temettü Bildirimleri</p>
-                        <p className="text-sm text-(--color-foreground-muted)">
-                          Takip ettiğiniz şirketlerin temettü ödemeleri için bildirim alın
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
