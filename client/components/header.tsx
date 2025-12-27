@@ -27,7 +27,7 @@ export function Header() {
   ]
 
   const calendars = [
-    { name: "Ekonomi Takvimi", href: "/ekonomi-takvimi" },
+    { name: "Ekonomik Takvim", href: "/ekonomik-takvim" },
     { name: "Temettü Takvimi", href: "/temettu-takvimi" },
     { name: "Halka Arz Takvimi", href: "/halka-arz-takvimi" },
   ]

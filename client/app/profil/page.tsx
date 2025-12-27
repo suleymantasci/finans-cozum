@@ -529,16 +529,16 @@ function ProfilPageContent() {
 
               {/* Takvimler Tab */}
               <TabsContent value="calendars" className="mt-6 space-y-6">
-                {/* Ekonomi Takvimi */}
+                {/* Ekonomik Takvim */}
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle>Ekonomi Takvimi</CardTitle>
+                        <CardTitle>Ekonomik Takvim</CardTitle>
                         <CardDescription>Takip ettiğiniz ekonomik veriler</CardDescription>
                       </div>
                       <Button asChild variant="outline" size="sm">
-                        <Link href="/ekonomi-takvimi">Tümünü Gör</Link>
+                        <Link href="/ekonomik-takvim">Tümünü Gör</Link>
                       </Button>
                     </div>
                   </CardHeader>
@@ -662,7 +662,7 @@ function ProfilPageContent() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between rounded-lg border p-4">
                       <div>
-                        <p className="font-medium">Ekonomi Takvimi Bildirimleri</p>
+                        <p className="font-medium">Ekonomik Takvim Bildirimleri</p>
                         <p className="text-sm text-(--color-foreground-muted)">
                           Takip ettiğiniz ekonomik veriler için bildirim alın
                         </p>

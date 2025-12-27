@@ -19,6 +19,7 @@ import { ToolDataSyncModule } from './tool-data-sync/tool-data-sync.module';
 import { NewsAdSlotsModule } from './news-ad-slots/news-ad-slots.module';
 import { CacheModule } from './cache/cache.module';
 import { MarketDataModule } from './market-data/market-data.module';
+import { EconomicCalendarModule } from './economic-calendar/economic-calendar.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { MarketDataModule } from './market-data/market-data.module';
     NewsAdSlotsModule,
     CacheModule,
     MarketDataModule,
+    EconomicCalendarModule,
     FavoriteNewsModule,
     FavoriteMarketsModule,
     FavoriteToolsModule,
