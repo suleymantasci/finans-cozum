@@ -1,4 +1,11 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const isServer = typeof window === 'undefined';
+// Client-side: Use configured URL or default to specific port
+// Server-side: If relative path configured (for proxy), fallback to direct backend URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+  ? (isServer && process.env.NEXT_PUBLIC_API_URL.startsWith('/') 
+      ? (process.env.SERVER_API_URL || 'http://localhost:3001') 
+      : process.env.NEXT_PUBLIC_API_URL)
+  : 'http://localhost:3001';
 
 export class ApiError extends Error {
   constructor(
