@@ -44,7 +44,6 @@ export class IpoListingDto {
   bistCode: string;
   companyName: string;
   ipoDate: string;
-  detailUrl: string;
   logoUrl?: string;
   isNew: boolean;
   hasResults: boolean;
