@@ -20,6 +20,7 @@ import { NewsAdSlotsModule } from './news-ad-slots/news-ad-slots.module';
 import { CacheModule } from './cache/cache.module';
 import { MarketDataModule } from './market-data/market-data.module';
 import { EconomicCalendarModule } from './economic-calendar/economic-calendar.module';
+import { IpoModule } from './ipo/ipo.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { EconomicCalendarModule } from './economic-calendar/economic-calendar.mo
     CacheModule,
     MarketDataModule,
     EconomicCalendarModule,
+    IpoModule,
     FavoriteNewsModule,
     FavoriteMarketsModule,
     FavoriteToolsModule,

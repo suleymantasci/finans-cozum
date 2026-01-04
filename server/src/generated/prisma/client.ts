@@ -112,3 +112,23 @@ export type BistDailyData = Prisma.BistDailyDataModel
  * 
  */
 export type TcmbDailyData = Prisma.TcmbDailyDataModel
+/**
+ * Model IpoListing
+ * 
+ */
+export type IpoListing = Prisma.IpoListingModel
+/**
+ * Model IpoDetail
+ * 
+ */
+export type IpoDetail = Prisma.IpoDetailModel
+/**
+ * Model IpoResult
+ * 
+ */
+export type IpoResult = Prisma.IpoResultModel
+/**
+ * Model IpoApplicationPlace
+ * 
+ */
+export type IpoApplicationPlace = Prisma.IpoApplicationPlaceModel

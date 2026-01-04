@@ -472,3 +472,107 @@ model TcmbDailyData {
   @@index([date])
   @@map("tcmb_daily_data")
 }
+
+// ==================== IPO (HALKA ARZ) DATA ====================
+
+enum IpoStatus {
+  UPCOMING      // Yaklaşan halka arz
+  COMPLETED     // Sonuçlanmış halka arz
+  DRAFT         // Taslak
+}
+
+model IpoListing {
+  id              String      @id @default(uuid())
+  bistCode        String      @unique // BIST kodu (örn: FRMPL, PAHOL) - unique identifier
+  companyName     String      // Şirket adı
+  ipoDate         String      // Halka arz tarihi (text format)
+  detailUrl       String      // Detay sayfası URL
+  logoUrl         String?     // Logo URL
+  
+  // Status Badges
+  isNew           Boolean     @default(false) // il-new badge
+  hasResults      Boolean     @default(false) // snc-badge (sonuçlar açıklandı)
+  status          IpoStatus   @default(UPCOMING)
+  
+  // Relations
+  detail          IpoDetail?
+  results         IpoResult?
+  applicationPlaces IpoApplicationPlace[]
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@index([bistCode])
+  @@index([status])
+  @@index([isNew])
+  @@index([hasResults])
+  @@map("ipo_listings")
+}
+
+model IpoDetail {
+  id                    String      @id @default(uuid())
+  listingId             String      @unique
+  listing               IpoListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  // Basic Info (from sp-table)
+  ipoDate               String?
+  ipoDateTimeRange      String?     // Saat aralığı (örn: 09:00-17:00)
+  ipoPrice              String?     // Halka arz fiyatı/aralığı
+  distributionMethod    String?     // Dağıtım yöntemi
+  shareAmount           String?     // Pay miktarı
+  intermediary          String?     // Aracı kurum
+  consortium            String[]    // Konsorsiyum üyeleri
+  actualCirculation     String?     // Fiili dolaşımdaki pay (for completed)
+  actualCirculationPct  String?     // Fiili dolaşımdaki pay oranı
+  firstTradeDate        String?     // BIST ilk işlem tarihi
+  market                String?     // Pazar (Ana Pazar, Yıldız Pazar, etc.)
+  
+  // Summary Info (Özet Bilgiler) - stored as JSON
+  summaryInfo           Json?       // Halka arz şekli, fon kullanımı, tahsisat grupları, etc.
+  
+  // Company Info
+  companyDescription    String?     @db.Text
+  city                  String?
+  foundedDate           String?
+  
+  // Attachments (Ekler) - stored as JSON array
+  attachments           Json?       // PDF links
+  
+  lastModified          String?     // Son güncelleme tarihi
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([listingId])
+  @@map("ipo_details")
+}
+
+model IpoResult {
+  id                String      @id @default(uuid())
+  listingId         String      @unique
+  listing           IpoListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  // Results Table Data (as-table)
+  resultsData       Json        // Yatırımcı grubu, kişi sayısı, lot, oran
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([listingId])
+  @@map("ipo_results")
+}
+
+model IpoApplicationPlace {
+  id                String      @id @default(uuid())
+  listingId         String
+  listing           IpoListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  name              String      // Kurum adı
+  isConsortium      Boolean     @default(false) // Konsorsiyum üyesi mi
+  isUnlisted        Boolean     @default(false) // unlist class'ı var mı
+  
+  createdAt         DateTime    @default(now())
+  
+  @@index([listingId])
+  @@map("ipo_application_places")
+}

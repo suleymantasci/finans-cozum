@@ -467,6 +467,23 @@ export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
 }
 
+export type EnumIpoStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.IpoStatus | Prisma.EnumIpoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIpoStatusFilter<$PrismaModel> | $Enums.IpoStatus
+}
+
+export type EnumIpoStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IpoStatus | Prisma.EnumIpoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIpoStatusWithAggregatesFilter<$PrismaModel> | $Enums.IpoStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIpoStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIpoStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -866,6 +883,23 @@ export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumIpoStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.IpoStatus | Prisma.EnumIpoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIpoStatusFilter<$PrismaModel> | $Enums.IpoStatus
+}
+
+export type NestedEnumIpoStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IpoStatus | Prisma.EnumIpoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IpoStatus[] | Prisma.ListEnumIpoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIpoStatusWithAggregatesFilter<$PrismaModel> | $Enums.IpoStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIpoStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIpoStatusFilter<$PrismaModel>
 }
 
 

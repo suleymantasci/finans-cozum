@@ -65,7 +65,11 @@ export const ModelName = {
   ToolDataSync: 'ToolDataSync',
   ExternalData: 'ExternalData',
   BistDailyData: 'BistDailyData',
-  TcmbDailyData: 'TcmbDailyData'
+  TcmbDailyData: 'TcmbDailyData',
+  IpoListing: 'IpoListing',
+  IpoDetail: 'IpoDetail',
+  IpoResult: 'IpoResult',
+  IpoApplicationPlace: 'IpoApplicationPlace'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -352,6 +356,73 @@ export const TcmbDailyDataScalarFieldEnum = {
 } as const
 
 export type TcmbDailyDataScalarFieldEnum = (typeof TcmbDailyDataScalarFieldEnum)[keyof typeof TcmbDailyDataScalarFieldEnum]
+
+
+export const IpoListingScalarFieldEnum = {
+  id: 'id',
+  bistCode: 'bistCode',
+  companyName: 'companyName',
+  ipoDate: 'ipoDate',
+  detailUrl: 'detailUrl',
+  logoUrl: 'logoUrl',
+  isNew: 'isNew',
+  hasResults: 'hasResults',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IpoListingScalarFieldEnum = (typeof IpoListingScalarFieldEnum)[keyof typeof IpoListingScalarFieldEnum]
+
+
+export const IpoDetailScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  ipoDate: 'ipoDate',
+  ipoDateTimeRange: 'ipoDateTimeRange',
+  ipoPrice: 'ipoPrice',
+  distributionMethod: 'distributionMethod',
+  shareAmount: 'shareAmount',
+  intermediary: 'intermediary',
+  consortium: 'consortium',
+  actualCirculation: 'actualCirculation',
+  actualCirculationPct: 'actualCirculationPct',
+  firstTradeDate: 'firstTradeDate',
+  market: 'market',
+  summaryInfo: 'summaryInfo',
+  companyDescription: 'companyDescription',
+  city: 'city',
+  foundedDate: 'foundedDate',
+  attachments: 'attachments',
+  lastModified: 'lastModified',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IpoDetailScalarFieldEnum = (typeof IpoDetailScalarFieldEnum)[keyof typeof IpoDetailScalarFieldEnum]
+
+
+export const IpoResultScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  resultsData: 'resultsData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IpoResultScalarFieldEnum = (typeof IpoResultScalarFieldEnum)[keyof typeof IpoResultScalarFieldEnum]
+
+
+export const IpoApplicationPlaceScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  name: 'name',
+  isConsortium: 'isConsortium',
+  isUnlisted: 'isUnlisted',
+  createdAt: 'createdAt'
+} as const
+
+export type IpoApplicationPlaceScalarFieldEnum = (typeof IpoApplicationPlaceScalarFieldEnum)[keyof typeof IpoApplicationPlaceScalarFieldEnum]
 
 
 export const SortOrder = {

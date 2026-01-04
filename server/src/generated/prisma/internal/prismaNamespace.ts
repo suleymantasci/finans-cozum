@@ -398,7 +398,11 @@ export const ModelName = {
   ToolDataSync: 'ToolDataSync',
   ExternalData: 'ExternalData',
   BistDailyData: 'BistDailyData',
-  TcmbDailyData: 'TcmbDailyData'
+  TcmbDailyData: 'TcmbDailyData',
+  IpoListing: 'IpoListing',
+  IpoDetail: 'IpoDetail',
+  IpoResult: 'IpoResult',
+  IpoApplicationPlace: 'IpoApplicationPlace'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -414,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "favoriteNews" | "favoriteMarket" | "favoriteTool" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData"
+    modelProps: "user" | "favoriteNews" | "favoriteMarket" | "favoriteTool" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData" | "ipoListing" | "ipoDetail" | "ipoResult" | "ipoApplicationPlace"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1528,6 +1532,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    IpoListing: {
+      payload: Prisma.$IpoListingPayload<ExtArgs>
+      fields: Prisma.IpoListingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IpoListingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IpoListingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>
+        }
+        findFirst: {
+          args: Prisma.IpoListingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IpoListingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>
+        }
+        findMany: {
+          args: Prisma.IpoListingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>[]
+        }
+        create: {
+          args: Prisma.IpoListingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>
+        }
+        createMany: {
+          args: Prisma.IpoListingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IpoListingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>[]
+        }
+        delete: {
+          args: Prisma.IpoListingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>
+        }
+        update: {
+          args: Prisma.IpoListingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>
+        }
+        deleteMany: {
+          args: Prisma.IpoListingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IpoListingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IpoListingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>[]
+        }
+        upsert: {
+          args: Prisma.IpoListingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoListingPayload>
+        }
+        aggregate: {
+          args: Prisma.IpoListingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIpoListing>
+        }
+        groupBy: {
+          args: Prisma.IpoListingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoListingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IpoListingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoListingCountAggregateOutputType> | number
+        }
+      }
+    }
+    IpoDetail: {
+      payload: Prisma.$IpoDetailPayload<ExtArgs>
+      fields: Prisma.IpoDetailFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IpoDetailFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IpoDetailFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>
+        }
+        findFirst: {
+          args: Prisma.IpoDetailFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IpoDetailFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>
+        }
+        findMany: {
+          args: Prisma.IpoDetailFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>[]
+        }
+        create: {
+          args: Prisma.IpoDetailCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>
+        }
+        createMany: {
+          args: Prisma.IpoDetailCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IpoDetailCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>[]
+        }
+        delete: {
+          args: Prisma.IpoDetailDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>
+        }
+        update: {
+          args: Prisma.IpoDetailUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>
+        }
+        deleteMany: {
+          args: Prisma.IpoDetailDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IpoDetailUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IpoDetailUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>[]
+        }
+        upsert: {
+          args: Prisma.IpoDetailUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoDetailPayload>
+        }
+        aggregate: {
+          args: Prisma.IpoDetailAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIpoDetail>
+        }
+        groupBy: {
+          args: Prisma.IpoDetailGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoDetailGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IpoDetailCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoDetailCountAggregateOutputType> | number
+        }
+      }
+    }
+    IpoResult: {
+      payload: Prisma.$IpoResultPayload<ExtArgs>
+      fields: Prisma.IpoResultFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IpoResultFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IpoResultFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>
+        }
+        findFirst: {
+          args: Prisma.IpoResultFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IpoResultFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>
+        }
+        findMany: {
+          args: Prisma.IpoResultFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>[]
+        }
+        create: {
+          args: Prisma.IpoResultCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>
+        }
+        createMany: {
+          args: Prisma.IpoResultCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IpoResultCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>[]
+        }
+        delete: {
+          args: Prisma.IpoResultDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>
+        }
+        update: {
+          args: Prisma.IpoResultUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>
+        }
+        deleteMany: {
+          args: Prisma.IpoResultDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IpoResultUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IpoResultUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>[]
+        }
+        upsert: {
+          args: Prisma.IpoResultUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoResultPayload>
+        }
+        aggregate: {
+          args: Prisma.IpoResultAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIpoResult>
+        }
+        groupBy: {
+          args: Prisma.IpoResultGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoResultGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IpoResultCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoResultCountAggregateOutputType> | number
+        }
+      }
+    }
+    IpoApplicationPlace: {
+      payload: Prisma.$IpoApplicationPlacePayload<ExtArgs>
+      fields: Prisma.IpoApplicationPlaceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IpoApplicationPlaceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IpoApplicationPlaceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>
+        }
+        findFirst: {
+          args: Prisma.IpoApplicationPlaceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IpoApplicationPlaceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>
+        }
+        findMany: {
+          args: Prisma.IpoApplicationPlaceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>[]
+        }
+        create: {
+          args: Prisma.IpoApplicationPlaceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>
+        }
+        createMany: {
+          args: Prisma.IpoApplicationPlaceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IpoApplicationPlaceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>[]
+        }
+        delete: {
+          args: Prisma.IpoApplicationPlaceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>
+        }
+        update: {
+          args: Prisma.IpoApplicationPlaceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>
+        }
+        deleteMany: {
+          args: Prisma.IpoApplicationPlaceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IpoApplicationPlaceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IpoApplicationPlaceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>[]
+        }
+        upsert: {
+          args: Prisma.IpoApplicationPlaceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IpoApplicationPlacePayload>
+        }
+        aggregate: {
+          args: Prisma.IpoApplicationPlaceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIpoApplicationPlace>
+        }
+        groupBy: {
+          args: Prisma.IpoApplicationPlaceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoApplicationPlaceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IpoApplicationPlaceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IpoApplicationPlaceCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1837,6 +2137,73 @@ export const TcmbDailyDataScalarFieldEnum = {
 export type TcmbDailyDataScalarFieldEnum = (typeof TcmbDailyDataScalarFieldEnum)[keyof typeof TcmbDailyDataScalarFieldEnum]
 
 
+export const IpoListingScalarFieldEnum = {
+  id: 'id',
+  bistCode: 'bistCode',
+  companyName: 'companyName',
+  ipoDate: 'ipoDate',
+  detailUrl: 'detailUrl',
+  logoUrl: 'logoUrl',
+  isNew: 'isNew',
+  hasResults: 'hasResults',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IpoListingScalarFieldEnum = (typeof IpoListingScalarFieldEnum)[keyof typeof IpoListingScalarFieldEnum]
+
+
+export const IpoDetailScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  ipoDate: 'ipoDate',
+  ipoDateTimeRange: 'ipoDateTimeRange',
+  ipoPrice: 'ipoPrice',
+  distributionMethod: 'distributionMethod',
+  shareAmount: 'shareAmount',
+  intermediary: 'intermediary',
+  consortium: 'consortium',
+  actualCirculation: 'actualCirculation',
+  actualCirculationPct: 'actualCirculationPct',
+  firstTradeDate: 'firstTradeDate',
+  market: 'market',
+  summaryInfo: 'summaryInfo',
+  companyDescription: 'companyDescription',
+  city: 'city',
+  foundedDate: 'foundedDate',
+  attachments: 'attachments',
+  lastModified: 'lastModified',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IpoDetailScalarFieldEnum = (typeof IpoDetailScalarFieldEnum)[keyof typeof IpoDetailScalarFieldEnum]
+
+
+export const IpoResultScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  resultsData: 'resultsData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IpoResultScalarFieldEnum = (typeof IpoResultScalarFieldEnum)[keyof typeof IpoResultScalarFieldEnum]
+
+
+export const IpoApplicationPlaceScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  name: 'name',
+  isConsortium: 'isConsortium',
+  isUnlisted: 'isUnlisted',
+  createdAt: 'createdAt'
+} as const
+
+export type IpoApplicationPlaceScalarFieldEnum = (typeof IpoApplicationPlaceScalarFieldEnum)[keyof typeof IpoApplicationPlaceScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2079,6 +2446,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
+
+/**
+ * Reference to a field of type 'IpoStatus'
+ */
+export type EnumIpoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IpoStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'IpoStatus[]'
+ */
+export type ListEnumIpoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IpoStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -2189,6 +2570,10 @@ export type GlobalOmitConfig = {
   externalData?: Prisma.ExternalDataOmit
   bistDailyData?: Prisma.BistDailyDataOmit
   tcmbDailyData?: Prisma.TcmbDailyDataOmit
+  ipoListing?: Prisma.IpoListingOmit
+  ipoDetail?: Prisma.IpoDetailOmit
+  ipoResult?: Prisma.IpoResultOmit
+  ipoApplicationPlace?: Prisma.IpoApplicationPlaceOmit
 }
 
 /* Types for Logging */
