@@ -1,5 +1,5 @@
 import { IsOptional, IsEnum, IsBoolean, IsString, IsInt, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export enum IpoStatus {
   UPCOMING = 'UPCOMING',
@@ -9,8 +9,12 @@ export enum IpoStatus {
 
 export class IpoFilterDto {
   @IsOptional()
-  @IsEnum(IpoStatus)
-  status?: IpoStatus;
+  @IsEnum(IpoStatus, { each: true })
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value;
+    return [value];
+  })
+  status?: IpoStatus[];
 
   @IsOptional()
   @IsBoolean()

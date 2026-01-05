@@ -12,8 +12,8 @@ export class IpoService {
 
     const where: any = {};
 
-    if (status) {
-      where.status = status;
+    if (status && status.length > 0) {
+      where.status = { in: status };
     }
 
     if (isNew !== undefined) {
@@ -31,9 +31,8 @@ export class IpoService {
       ];
     }
 
-    const skip = (page - 1) * limit;
-
-    const [listings, total] = await Promise.all([
+    // Fetch ALL matching records to sort in memory by parsed date string
+    const [allListings, total] = await Promise.all([
       this.prisma.ipoListing.findMany({
         where,
         include: {
@@ -41,17 +40,37 @@ export class IpoService {
           results: true,
           applicationPlaces: true,
         },
-        orderBy: [
-          { isNew: 'desc' },
-          { createdAt: 'desc' },
-        ],
-        skip,
-        take: limit,
+        // Remove DB sorting by ipoDate string since it is not chronologically accurate
+        // We can sort by createdAt as a secondary sort or just rely on manual sort
       }),
       this.prisma.ipoListing.count({ where }),
     ]);
 
-    const data: IpoResponseDto[] = listings.map((listing) => ({
+    // Manual Sorting Logic
+    const sortedListings = allListings.sort((a, b) => {
+      // Primary Sort: New listings first (if isNew is significant)
+      // Actually sticking to user request: pure Date sort primarily?
+      // User said "tarihe göre sıralama ... sıralamayıda ona göre yapalım"
+      // But typically we want "isNew" items on top or highlighted?
+      // Original code had `isNew: 'desc'` then date. I will preserve that.
+      
+      if (a.isNew !== b.isNew) {
+          return a.isNew ? -1 : 1; // true comes first
+      }
+
+      const dateA = this.parseDateFromStr(a.ipoDate);
+      const dateB = this.parseDateFromStr(b.ipoDate);
+
+      return dateB - dateA; // Descending (Latest date first)
+    });
+
+
+    // Pagination logic
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedListings = sortedListings.slice(startIndex, endIndex);
+
+    const data: IpoResponseDto[] = paginatedListings.map((listing) => ({
       listing: {
         id: listing.id,
         bistCode: listing.bistCode,
@@ -111,6 +130,52 @@ export class IpoService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  private parseDateFromStr(dateStr: string): number {
+      if (!dateStr) return 0;
+      const clean = dateStr.trim().toLowerCase();
+      
+      // Find Year
+      const yearMatch = clean.match(/\d{4}/);
+      const year = yearMatch ? parseInt(yearMatch[0]) : 0;
+      if (year === 0) return 0; // No valid year found, treat as 0 (oldest/unknown)
+
+      // Find Month
+      // Order matters to match longest strings first if overlaps? 
+      // But standard months are distinct enough. 
+      // "mart" vs "mart" ok.
+      const months = ['ocak', 'şubat', 'mart', 'nisan', 'mayıs', 'haziran', 'temmuz', 'ağustos', 'eylül', 'ekim', 'kasım', 'aralık'];
+      let monthIndex = 0; // Default Jan
+      let foundMonth = false;
+      
+      // We search for the first occurring month name? Or iterate month names?
+      // Iterate month names and find first match in string?
+      // If string is "28 şubat - 1 mart", we want "şubat" (Feb).
+      // So we should find the POSITION of match.
+      
+      let minPos = 9999;
+      
+      months.forEach((m, index) => {
+          const idx = clean.indexOf(m);
+          if (idx !== -1 && idx < minPos) {
+              minPos = idx;
+              monthIndex = index;
+              foundMonth = true;
+          }
+      });
+      
+      // If no month found, default to Jan 1st of Year?
+      // Or 0? Retain year at least.
+      
+      // Find Day
+      // We want the number immediately preceding the month?
+      // Or just the first number in the string that is NOT the year.
+      const strWithoutYear = clean.replace(new RegExp(year.toString(), 'g'), '');
+      const dayMatch = strWithoutYear.match(/(\d+)/);
+      const day = dayMatch ? parseInt(dayMatch[1]) : 1;
+      
+      return new Date(year, monthIndex, day).getTime();
   }
 
   async findByBistCode(bistCode: string): Promise<IpoResponseDto> {

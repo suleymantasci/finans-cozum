@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 import * as crypto from 'crypto';
+import { parseResultsTable } from './ipo-results-parser.util';
 
 interface ScrapedListing {
   bistCode: string;
@@ -377,8 +378,18 @@ export class IpoScraperService {
                 data.ipoPrice = valueCell.querySelector('strong')?.textContent?.trim();
               } else if (label.includes('Dağıtım Yöntemi')) {
                 data.distributionMethod = valueCell.querySelector('strong')?.textContent?.trim();
-              } else if (label.includes('Pay')) {
-                data.shareAmount = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Fiili Dolaşımdaki Pay') && label.includes(':')) {
+                // Daha spesifik kontrolü önce yapıyoruz - "Fiili Dolaşımdaki Pay :" (colon ile)
+                data.actualCirculation = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Fiili Dolaşımdaki Pay Oranı')) {
+                // Daha spesifik kontrolü önce yapıyoruz - "Fiili Dolaşımdaki Pay Oranı"
+                data.actualCirculationPct = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Pay') && !label.includes('Fiili Dolaşımdaki')) {
+                // Genel "Pay" kontrolü - ama "Fiili Dolaşımdaki Pay" içermemeli
+                // Ayrıca "Oranı" veya "Oran" içermemeli (bu actualCirculationPct için)
+                if (!label.includes('Oranı') && !label.includes('Oran')) {
+                  data.shareAmount = valueCell.querySelector('strong')?.textContent?.trim();
+                }
               } else if (label.includes('Aracı Kurum')) {
                 data.intermediary = valueCell.querySelector('strong')?.textContent?.trim();
                 const consortium: string[] = [];
@@ -386,10 +397,6 @@ export class IpoScraperService {
                   consortium.push(li.textContent?.trim() || '');
                 });
                 data.consortium = consortium;
-              } else if (label.includes('Fiili Dolaşımdaki Pay :')) {
-                data.actualCirculation = valueCell.querySelector('strong')?.textContent?.trim();
-              } else if (label.includes('Fiili Dolaşımdaki Pay Oranı')) {
-                data.actualCirculationPct = valueCell.querySelector('strong')?.textContent?.trim();
               } else if (label.includes('Bist İlk İşlem Tarihi')) {
                 data.firstTradeDate = valueCell.querySelector('strong')?.textContent?.trim();
               } else if (label.includes('Pazar')) {
@@ -493,25 +500,27 @@ export class IpoScraperService {
       await this.ipoService.createOrUpdateDetail(listingId, detailData);
 
       // Extract and save results (if available)
-      const resultsData = await page.evaluate(() => {
+      const rawResultsData = await page.evaluate(() => {
         const resultsTable = document.querySelector('.as-table');
         if (!resultsTable) return null;
 
-        const results: any[] = [];
+        const rawRows: any[] = [];
         resultsTable.querySelectorAll('tbody tr').forEach((tr) => {
           const cells: string[] = [];
           tr.querySelectorAll('td').forEach((td) => {
              cells.push(td.textContent?.trim() || '');
           });
           if (cells.length > 0) {
-            results.push(cells);
+            rawRows.push(cells);
           }
         });
 
-        return results.length > 0 ? results : null;
+        return rawRows.length > 0 ? rawRows : null;
       });
 
-      if (resultsData) {
+      if (rawResultsData) {
+        // Parse raw table data into structured format
+        const resultsData = parseResultsTable(rawResultsData);
         await this.ipoService.createOrUpdateResults(listingId, resultsData);
       }
 
