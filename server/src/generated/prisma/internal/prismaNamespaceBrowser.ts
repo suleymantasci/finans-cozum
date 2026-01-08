@@ -69,7 +69,8 @@ export const ModelName = {
   IpoListing: 'IpoListing',
   IpoDetail: 'IpoDetail',
   IpoResult: 'IpoResult',
-  IpoApplicationPlace: 'IpoApplicationPlace'
+  IpoApplicationPlace: 'IpoApplicationPlace',
+  CommodityDailyData: 'CommodityDailyData'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -423,6 +424,18 @@ export const IpoApplicationPlaceScalarFieldEnum = {
 } as const
 
 export type IpoApplicationPlaceScalarFieldEnum = (typeof IpoApplicationPlaceScalarFieldEnum)[keyof typeof IpoApplicationPlaceScalarFieldEnum]
+
+
+export const CommodityDailyDataScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  hour: 'hour',
+  commodityData: 'commodityData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CommodityDailyDataScalarFieldEnum = (typeof CommodityDailyDataScalarFieldEnum)[keyof typeof CommodityDailyDataScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -49,13 +49,5 @@ export class MarketDataController {
   async getMarketDetail(@Param('symbol') symbol: string): Promise<MarketDetailResponse | null> {
     return this.marketDataService.getMarketDetail(symbol);
   }
-
-  @Get('history/:symbol')
-  async getMarketHistory(
-    @Param('symbol') symbol: string,
-    @Query('days') days: string = '30',
-  ) {
-    return this.marketDataService.getMarketHistory(symbol, parseInt(days, 10));
-  }
 }
 

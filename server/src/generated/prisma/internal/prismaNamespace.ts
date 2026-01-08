@@ -402,7 +402,8 @@ export const ModelName = {
   IpoListing: 'IpoListing',
   IpoDetail: 'IpoDetail',
   IpoResult: 'IpoResult',
-  IpoApplicationPlace: 'IpoApplicationPlace'
+  IpoApplicationPlace: 'IpoApplicationPlace',
+  CommodityDailyData: 'CommodityDailyData'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "favoriteNews" | "favoriteMarket" | "favoriteTool" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData" | "ipoListing" | "ipoDetail" | "ipoResult" | "ipoApplicationPlace"
+    modelProps: "user" | "favoriteNews" | "favoriteMarket" | "favoriteTool" | "category" | "news" | "newsAdSlot" | "toolCategory" | "tool" | "adSlotTemplate" | "toolAdSlot" | "toolDataSync" | "externalData" | "bistDailyData" | "tcmbDailyData" | "ipoListing" | "ipoDetail" | "ipoResult" | "ipoApplicationPlace" | "commodityDailyData"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1828,6 +1829,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CommodityDailyData: {
+      payload: Prisma.$CommodityDailyDataPayload<ExtArgs>
+      fields: Prisma.CommodityDailyDataFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CommodityDailyDataFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CommodityDailyDataFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>
+        }
+        findFirst: {
+          args: Prisma.CommodityDailyDataFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CommodityDailyDataFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>
+        }
+        findMany: {
+          args: Prisma.CommodityDailyDataFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>[]
+        }
+        create: {
+          args: Prisma.CommodityDailyDataCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>
+        }
+        createMany: {
+          args: Prisma.CommodityDailyDataCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CommodityDailyDataCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>[]
+        }
+        delete: {
+          args: Prisma.CommodityDailyDataDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>
+        }
+        update: {
+          args: Prisma.CommodityDailyDataUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>
+        }
+        deleteMany: {
+          args: Prisma.CommodityDailyDataDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CommodityDailyDataUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CommodityDailyDataUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>[]
+        }
+        upsert: {
+          args: Prisma.CommodityDailyDataUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommodityDailyDataPayload>
+        }
+        aggregate: {
+          args: Prisma.CommodityDailyDataAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCommodityDailyData>
+        }
+        groupBy: {
+          args: Prisma.CommodityDailyDataGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommodityDailyDataGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CommodityDailyDataCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommodityDailyDataCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2204,6 +2279,18 @@ export const IpoApplicationPlaceScalarFieldEnum = {
 export type IpoApplicationPlaceScalarFieldEnum = (typeof IpoApplicationPlaceScalarFieldEnum)[keyof typeof IpoApplicationPlaceScalarFieldEnum]
 
 
+export const CommodityDailyDataScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  hour: 'hour',
+  commodityData: 'commodityData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CommodityDailyDataScalarFieldEnum = (typeof CommodityDailyDataScalarFieldEnum)[keyof typeof CommodityDailyDataScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2574,6 +2661,7 @@ export type GlobalOmitConfig = {
   ipoDetail?: Prisma.IpoDetailOmit
   ipoResult?: Prisma.IpoResultOmit
   ipoApplicationPlace?: Prisma.IpoApplicationPlaceOmit
+  commodityDailyData?: Prisma.CommodityDailyDataOmit
 }
 
 /* Types for Logging */

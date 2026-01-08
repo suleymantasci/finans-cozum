@@ -24,7 +24,7 @@ function NewNewsAdSlotPageContent() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<CreateNewsAdSlotDto>({
-    position: 'TOP',
+    position: NewsAdSlotPosition.TOP,
     isActive: true,
     order: 0,
     showOnMobile: true,

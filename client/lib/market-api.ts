@@ -14,11 +14,13 @@ export interface MarketDataItem {
     sell?: number;
     marketCap?: string;
     volume?: number;
+    volumeTL?: number; // Hacim TL olarak (borsa verileri için)
     high?: number;
     low?: number;
     open?: number;
     prevClose?: number;
     time?: string; // Veri saati (HH:mm formatında)
+    bistGroups?: string[]; // BIST grupları (örn: ["BIST 100", "BIST 50"])
   };
 }
 
@@ -111,13 +113,6 @@ export const marketApi = {
    */
   getMarketDetail: async (symbol: string): Promise<MarketDetailResponse | null> => {
     return api.get<MarketDetailResponse | null>(`/market-data/detail/${symbol}`);
-  },
-
-  /**
-   * Belirli bir sembol için geçmiş fiyat verilerini getir (grafik için)
-   */
-  getMarketHistory: async (symbol: string, days: number = 30): Promise<Array<{ date: string; price: number }>> => {
-    return api.get<Array<{ date: string; price: number }>>(`/market-data/history/${symbol}?days=${days}`);
   },
 };
 

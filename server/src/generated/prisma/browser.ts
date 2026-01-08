@@ -112,3 +112,8 @@ export type IpoResult = Prisma.IpoResultModel
  * 
  */
 export type IpoApplicationPlace = Prisma.IpoApplicationPlaceModel
+/**
+ * Model CommodityDailyData
+ * 
+ */
+export type CommodityDailyData = Prisma.CommodityDailyDataModel

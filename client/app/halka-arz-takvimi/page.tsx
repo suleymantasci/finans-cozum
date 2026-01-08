@@ -21,7 +21,7 @@ export default function HalkaArzTakvimiPage() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const observerTarget = useRef(null)
-  
+
   // Search states - separate for each tab
   const [searchMevcut, setSearchMevcut] = useState("")
   const [searchTaslak, setSearchTaslak] = useState("")
@@ -245,18 +245,18 @@ export default function HalkaArzTakvimiPage() {
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
               <div className="mb-6 flex flex-col gap-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <TabsList>
-                    <TabsTrigger value="mevcut">Mevcut Arzlar</TabsTrigger>
-                    <TabsTrigger value="taslak">Taslaklar</TabsTrigger>
-                  </TabsList>
+                <TabsList>
+                  <TabsTrigger value="mevcut">Mevcut Arzlar</TabsTrigger>
+                  <TabsTrigger value="taslak">Taslaklar</TabsTrigger>
+                </TabsList>
 
-                  <div className="flex gap-2">
-                    <Button variant={viewMode === "grid" ? "default" : "outline"} size="sm" onClick={() => setViewMode("grid")}>
-                      <LayoutGrid className="h-4 w-4" />
-                    </Button>
-                    <Button variant={viewMode === "list" ? "default" : "outline"} size="sm" onClick={() => setViewMode("list")}>
-                      <List className="h-4 w-4" />
-                    </Button>
+                <div className="flex gap-2">
+                  <Button variant={viewMode === "grid" ? "default" : "outline"} size="sm" onClick={() => setViewMode("grid")}>
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                  <Button variant={viewMode === "list" ? "default" : "outline"} size="sm" onClick={() => setViewMode("list")}>
+                    <List className="h-4 w-4" />
+                  </Button>
                   </div>
                 </div>
                 
@@ -289,79 +289,81 @@ export default function HalkaArzTakvimiPage() {
                 ) : (
                   <>
                   {viewMode === "list" ? (
-                    <div className="hidden overflow-x-auto rounded-lg border md:block">
-                      <table className="w-full">
-                        <thead className="bg-secondary/30">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold">Şirket</th>
-                            {activeTab !== "taslak" && <th className="px-4 py-3 text-left text-sm font-semibold">Kod</th>}
-                            {activeTab !== "taslak" && <th className="px-4 py-3 text-left text-sm font-semibold">Tarih</th>}
-                            <th className="px-4 py-3 text-center text-sm font-semibold">Durum</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold">Takip</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {listings.map((item, i) => {
-                            const href = getListingHref(item.listing.bistCode)
-                            
-                            return (
-                            <tr 
-                              key={`${item.listing.id}-${i}`}
-                              className="hover:bg-secondary/20 transition-colors"
-                            >
-                              <td className="px-4 py-3">
-                                <Link href={href} className="flex items-center gap-3 cursor-pointer">
-                                  {item.listing.logoUrl ? (
-                                    <img 
-                                      src={getLogoUrl(item.listing.logoUrl)} 
-                                      alt={item.listing.companyName}
-                                      className="w-10 h-10 object-contain rounded bg-white p-0.5 border"
-                                      onError={(e) => (e.currentTarget.src = "/placeholder-logo.png")}
-                                    />
-                                  ) : (
-                                    <div className="w-10 h-10 bg-secondary rounded flex items-center justify-center text-xs font-bold">
-                                      {!shouldHideBistCode(item.listing.bistCode) ? item.listing.bistCode.substring(0, 2) : "?"}
-                                    </div>
-                                  )}
-                                  <div className="font-semibold text-sm">{item.listing.companyName}</div>
-                                </Link>
-                              </td>
-                              {activeTab !== "taslak" && (
-                                <td className="px-4 py-3 text-sm font-medium text-muted-foreground">
-                                  <Link href={href} className="cursor-pointer">
-                                    {formatBistCode(item.listing.bistCode)}
-                                  </Link>
-                                </td>
-                              )}
-                              {activeTab !== "taslak" && shouldShowDate(item.listing.status) && (
-                                <td className="px-4 py-3 text-sm">
-                                  <Link href={href} className="cursor-pointer">
-                                    {item.listing.ipoDate}
-                                  </Link>
-                                </td>
-                              )}
-                              {activeTab !== "taslak" && !shouldShowDate(item.listing.status) && (
-                                <td className="px-4 py-3 text-sm text-muted-foreground">
-                                  -
-                                </td>
-                              )}
-                              <td className="px-4 py-3 text-center">
-                                {renderStatusBadge(item.listing.status)}
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <Button
-                                  variant={followedIPOs.includes(item.listing.id) ? "default" : "outline"}
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => toggleFollow(item.listing.id, e)}
-                                >
-                                  <Bell className="h-3.5 w-3.5" />
-                                </Button>
-                              </td>
+                    <div className="overflow-x-auto rounded-lg border">
+                      <div className="min-w-[700px]">
+                        <table className="w-full">
+                          <thead className="bg-secondary/30">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">Şirket</th>
+                              {activeTab !== "taslak" && <th className="px-4 py-3 text-left text-sm font-semibold">Kod</th>}
+                              {activeTab !== "taslak" && <th className="px-4 py-3 text-left text-sm font-semibold">Tarih</th>}
+                              <th className="px-4 py-3 text-center text-sm font-semibold">Durum</th>
+                              <th className="px-4 py-3 text-center text-sm font-semibold">Takip</th>
                             </tr>
-                          )})}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y">
+                            {listings.map((item, i) => {
+                              const href = getListingHref(item.listing.bistCode)
+                              
+                              return (
+                              <tr 
+                                key={`${item.listing.id}-${i}`}
+                                className="hover:bg-secondary/20 transition-colors cursor-pointer"
+                              >
+                                <td className="px-4 py-3">
+                                  <Link href={href} className="flex items-center gap-3 cursor-pointer">
+                                    {item.listing.logoUrl ? (
+                                      <img 
+                                        src={getLogoUrl(item.listing.logoUrl)} 
+                                        alt={item.listing.companyName}
+                                        className="w-10 h-10 object-contain rounded bg-white p-0.5 border"
+                                        onError={(e) => (e.currentTarget.src = "/placeholder-logo.png")}
+                                      />
+                                    ) : (
+                                      <div className="w-10 h-10 bg-secondary rounded flex items-center justify-center text-xs font-bold">
+                                        {!shouldHideBistCode(item.listing.bistCode) ? item.listing.bistCode.substring(0, 2) : "?"}
+                                      </div>
+                                    )}
+                                    <div className="font-semibold text-sm">{item.listing.companyName}</div>
+                                  </Link>
+                                </td>
+                                {activeTab !== "taslak" && (
+                                <td className="px-4 py-3 text-sm font-medium text-muted-foreground">
+                                    <Link href={href} className="cursor-pointer">
+                                      {formatBistCode(item.listing.bistCode)}
+                                    </Link>
+                                </td>
+                                )}
+                                {activeTab !== "taslak" && shouldShowDate(item.listing.status) && (
+                                <td className="px-4 py-3 text-sm">
+                                    <Link href={href} className="cursor-pointer">
+                                  {item.listing.ipoDate}
+                                    </Link>
+                                  </td>
+                                )}
+                                {activeTab !== "taslak" && !shouldShowDate(item.listing.status) && (
+                                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                                    -
+                                </td>
+                                )}
+                                <td className="px-4 py-3 text-center">
+                                  {renderStatusBadge(item.listing.status)}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <Button
+                                    variant={followedIPOs.includes(item.listing.id) ? "default" : "outline"}
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onClick={(e) => toggleFollow(item.listing.id, e)}
+                                  >
+                                    <Bell className="h-3.5 w-3.5" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            )})}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   ) : (
                     <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -370,105 +372,65 @@ export default function HalkaArzTakvimiPage() {
                         return (
                           <Link key={`${item.listing.id}-${i}`} href={href}>
                             <Card className="p-4 hover:border-primary transition-colors cursor-pointer h-full">
-                              <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                  {item.listing.logoUrl ? (
-                                    <img 
-                                      src={getLogoUrl(item.listing.logoUrl)} 
-                                      alt={item.listing.companyName}
-                                      className="w-12 h-12 object-contain rounded bg-white p-0.5 border"
-                                      onError={(e) => (e.currentTarget.src = "/placeholder-logo.png")}
-                                    />
-                                  ) : (
-                                    <div className="w-12 h-12 bg-secondary rounded flex items-center justify-center text-lg font-bold">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              {item.listing.logoUrl ? (
+                                <img 
+                                  src={getLogoUrl(item.listing.logoUrl)} 
+                                  alt={item.listing.companyName}
+                                  className="w-12 h-12 object-contain rounded bg-white p-0.5 border"
+                                  onError={(e) => (e.currentTarget.src = "/placeholder-logo.png")}
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-secondary rounded flex items-center justify-center text-lg font-bold">
                                       {!shouldHideBistCode(item.listing.bistCode) ? item.listing.bistCode.substring(0, 2) : "?"}
-                                    </div>
-                                  )}
-                                  <div>
-                                    <div className="font-semibold line-clamp-1" title={item.listing.companyName}>
-                                      {item.listing.companyName}
-                                    </div>
-                                    {!shouldHideBistCode(item.listing.bistCode) && (
-                                      <div className="text-xs text-muted-foreground">{item.listing.bistCode}</div>
-                                    )}
-                                  </div>
                                 </div>
-                                {renderStatusBadge(item.listing.status)}
+                              )}
+                              <div>
+                                <div className="font-semibold line-clamp-1" title={item.listing.companyName}>
+                                  {item.listing.companyName}
+                                </div>
+                                    {!shouldHideBistCode(item.listing.bistCode) && (
+                                <div className="text-xs text-muted-foreground">{item.listing.bistCode}</div>
+                                    )}
                               </div>
-                              
-                              <div className="space-y-2 text-sm">
+                            </div>
+                            {renderStatusBadge(item.listing.status)}
+                          </div>
+                          
+                          <div className="space-y-2 text-sm">
                                 {shouldShowDate(item.listing.status) && (
-                                  <div className="flex justify-between border-b pb-2">
-                                    <span className="text-muted-foreground">Tarih</span>
-                                    <span className="font-medium">{item.listing.ipoDate}</span>
-                                  </div>
+                            <div className="flex justify-between border-b pb-2">
+                              <span className="text-muted-foreground">Tarih</span>
+                              <span className="font-medium">{item.listing.ipoDate}</span>
+                            </div>
                                 )}
-                                {item.detail?.ipoPrice && (
-                                  <div className="flex justify-between border-b pb-2">
-                                    <span className="text-muted-foreground">Fiyat</span>
-                                    <span className="font-medium">{item.detail.ipoPrice}</span>
-                                  </div>
-                                )}
+                            {item.detail?.ipoPrice && (
+                              <div className="flex justify-between border-b pb-2">
+                                <span className="text-muted-foreground">Fiyat</span>
+                                <span className="font-medium">{item.detail.ipoPrice}</span>
                               </div>
+                            )}
+                          </div>
 
-                              <div className="mt-4 flex justify-end">
-                                <Button
-                                  variant={followedIPOs.includes(item.listing.id) ? "default" : "outline"}
-                                  size="sm"
+                          <div className="mt-4 flex justify-end">
+                            <Button
+                              variant={followedIPOs.includes(item.listing.id) ? "default" : "outline"}
+                              size="sm"
                                   onClick={(e) => {
                                     e.preventDefault()
                                     toggleFollow(item.listing.id, e)
                                   }}
-                                  className="w-full sm:w-auto"
-                                >
-                                  <Bell className="mr-2 h-3.5 w-3.5" />
-                                  {followedIPOs.includes(item.listing.id) ? "Takipte" : "Takip Et"}
-                                </Button>
-                              </div>
-                            </Card>
+                              className="w-full sm:w-auto"
+                            >
+                              <Bell className="mr-2 h-3.5 w-3.5" />
+                              {followedIPOs.includes(item.listing.id) ? "Takipte" : "Takip Et"}
+                            </Button>
+                          </div>
+                        </Card>
                           </Link>
                         )
                       })}
-                    </div>
-                  )}
-
-                  {/* Mobile List View Fallback */}
-                  {viewMode === "list" && (
-                     <div className="md:hidden space-y-4">
-                        {listings.map((item, i) => {
-                          const href = getListingHref(item.listing.bistCode)
-                          return (
-                            <Link key={`${item.listing.id}-${i}-mobile`} href={href}>
-                              <Card className="p-4 cursor-pointer">
-                                <div className="flex items-center gap-3 mb-3">
-                                  {item.listing.logoUrl ? (
-                                    <img src={getLogoUrl(item.listing.logoUrl)} className="w-10 h-10 object-contain bg-white rounded border" />
-                                  ) : (
-                                    <div className="w-10 h-10 bg-secondary rounded flex items-center justify-center font-bold px-1">
-                                      {!shouldHideBistCode(item.listing.bistCode) ? item.listing.bistCode.substring(0,2) : "?"}
-                                    </div>
-                                  )}
-                                  
-                                  <div className="flex-1">
-                                    <div className="font-semibold">{item.listing.companyName}</div>
-                                    {!shouldHideBistCode(item.listing.bistCode) && (
-                                      <div className="text-xs text-muted-foreground">{item.listing.bistCode}</div>
-                                    )}
-                                  </div>
-                                  
-                                  {renderStatusBadge(item.listing.status)}
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                  {shouldShowDate(item.listing.status) && (
-                                    <span className="text-muted-foreground">{item.listing.ipoDate}</span>
-                                  )}
-                                  {!shouldShowDate(item.listing.status) && <span className="text-muted-foreground">-</span>}
-                                  {item.detail?.ipoPrice && <span className="font-medium">{item.detail.ipoPrice}</span>}
-                                </div>
-                              </Card>
-                            </Link>
-                          )
-                        })}
                     </div>
                   )}
                   </>

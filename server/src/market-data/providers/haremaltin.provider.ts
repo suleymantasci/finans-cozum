@@ -1,128 +1,196 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as cheerio from 'cheerio';
-import { chromium } from 'playwright';
+import { ScrapingService } from '../../common/scraping/scraping.service';
 import { MarketDataItem } from '../dto/market-data.dto';
 
 @Injectable()
 export class HaremAltinProvider {
   private readonly logger = new Logger(HaremAltinProvider.name);
-  private readonly baseUrl = 'https://canlipiyasalar.haremaltin.com';
+  private readonly baseUrl = 'https://www.haremaltin.com/';
+  private readonly serviceName = 'harem-altin';
+  
+  // Retry mekanizması için state
+  private consecutiveFailures = 0;
+  private lastFailureTime: number | null = null;
+  private readonly MAX_CONSECUTIVE_FAILURES = 5;
+  private readonly COOLDOWN_PERIOD = 60 * 60 * 1000; // 1 saat (milisaniye)
 
-  constructor() {}
+  constructor(private readonly scrapingService: ScrapingService) {}
 
   /**
    * Harem Altın'dan altın fiyatlarını web scraping ile getir
-   * Tablo: #view > section.dashboard-content.container-fluid > div > div > div > div:nth-child(1)
-   * Vue.js render edilmiş sayfayı Playwright ile alıyoruz
+   * Tablo: .tab-currency-gold > .tableContent > .table
+   * HTML tablosundan direkt veri çekiyoruz
+   * Retry mekanizması ile daha güvenilir hale getirildi
+   * 5 başarısız denemeden sonra 1 saat cooldown period
    */
   async getGoldPrices(): Promise<MarketDataItem[]> {
-    let browser: any = null;
-    let page: any = null;
-    try {
-      // Playwright browser başlat
-      browser = await chromium.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      });
-      
-      page = await browser.newPage();
-      
-      // User agent ayarla
-      await page.setExtraHTTPHeaders({
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      });
-      
-      // Sayfayı yükle
-      await page.goto(this.baseUrl, {
-        waitUntil: 'networkidle',
-        timeout: 15000,
-      });
-
-      // Vue.js'in render etmesini bekle
-      // Dashboard content'in görünmesini bekle
-      await page.waitForSelector('#view section.dashboard-content', {
-        timeout: 10000,
-      });
-      
-      // Tabloların render edilmesini bekle
-      await page.waitForFunction(
-        () => {
-          const dashboard = document.querySelector('#view section.dashboard-content');
-          if (!dashboard) return false;
-          const tables = dashboard.querySelectorAll('table');
-          return tables.length > 0;
-        },
-        { timeout: 10000 }
-      );
-      
-      // Ekstra bekleme - Vue.js'in tüm verileri yüklemesi için
-      await page.waitForTimeout(2000);
-      
-      // Render edilmiş HTML'i al
-      const html = await page.content();
-      
-      const $ = cheerio.load(html);
-      const goldData: MarketDataItem[] = [];
-
-      // Tablo selector: #view > section.dashboard-content.container-fluid > div > div > div > div:nth-child(1)
-      const dashboardContent = $('#view section.dashboard-content.container-fluid');
-      
-      if (dashboardContent.length === 0) {
-        this.logger.warn('Dashboard content bulunamadı');
-        return [];
+    // Cooldown period kontrolü
+    if (this.consecutiveFailures >= this.MAX_CONSECUTIVE_FAILURES && this.lastFailureTime) {
+      const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+      if (timeSinceLastFailure < this.COOLDOWN_PERIOD) {
+        const remainingMinutes = Math.ceil((this.COOLDOWN_PERIOD - timeSinceLastFailure) / (60 * 1000));
+        this.logger.warn(
+          `Harem Altın scraping cooldown period'da. ${remainingMinutes} dakika sonra tekrar denenecek. ` +
+          `(${this.consecutiveFailures} başarısız deneme)`
+        );
+        return []; // Boş array döndür, DB'den veri çekilecek
+      } else {
+        // Cooldown period geçti, reset
+        this.logger.log('Harem Altın scraping cooldown period bitti, tekrar denenecek');
+        this.consecutiveFailures = 0;
+        this.lastFailureTime = null;
       }
+    }
 
-      // İlk div > div > div > div:nth-child(1) altındaki tabloyu bul
-      const targetDiv = dashboardContent.find('div > div > div > div').first();
-      
-      // Bu div altındaki tüm tabloları bul
-      let tables = targetDiv.find('table');
-      
-      if (tables.length === 0) {
-        // Alternatif: dashboard-content içindeki tüm tabloları ara
-        tables = dashboardContent.find('table');
-      }
-      
-      if (tables.length === 0) {
-        this.logger.warn('Hiç tablo bulunamadı');
-        return [];
-      }
-      
-      tables.each((index, table) => {
-        this.parseTable($(table), goldData, index, $);
-      });
+    const maxRetries = 3;
+    let lastError: any = null;
 
-      this.logger.debug(`Harem Altın'dan ${goldData.length} altın fiyatı başarıyla alındı`);
-      return goldData;
-    } catch (error: any) {
-      this.logger.error(`Harem Altın scraping hatası: ${error.message}`, error.stack);
-      return [];
-    } finally {
-      // Sayfayı kapat
-      if (page) {
-        try {
-          await page.close();
-        } catch (e) {
-          // Sayfa zaten kapalı
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      let browser: any = null;
+      let context: any = null;
+      let page: any = null;
+      
+      try {
+        // Ortak scraping servisi ile browser oluştur (bot tespitinden kaçınmak için)
+        const { browser: createdBrowser, context: createdContext, page: createdPage } = 
+          await this.scrapingService.createStealthBrowser(this.serviceName);
+        
+        browser = createdBrowser;
+        context = createdContext;
+        page = createdPage;
+        
+        // Sayfaya gerçekçi bir şekilde git
+        await this.scrapingService.navigateWithStealth(page, this.baseUrl, {
+          waitUntil: 'load',
+          timeout: 60000,
+        });
+        
+        // Altın fiyatları tablosunun görünmesini bekle
+        await page.waitForSelector('.tab-currency-gold .table', {
+          timeout: 30000,
+          state: 'attached',
+        });
+        
+        // Tablo içeriğinin yüklenmesini bekle
+        await page.waitForFunction(
+          () => {
+            const table = document.querySelector('.tab-currency-gold .table');
+            if (!table) return false;
+            const rows = table.querySelectorAll('tbody tr');
+            return rows.length > 0;
+          },
+          { timeout: 30000 }
+        );
+        
+        // İnsan benzeri rastgele bekleme (tablo yüklendikten sonra)
+        await this.scrapingService.humanLikeDelay(800, 2000);
+        
+        // Tabloya scroll yap (daha gerçekçi)
+        await this.scrapingService.scrollToElement(page, '.tab-currency-gold .table');
+        
+        // Render edilmiş HTML'i al
+        const html = await page.content();
+        
+        const $ = cheerio.load(html);
+        const goldData: MarketDataItem[] = [];
+
+        // Tablo selector: .tab-currency-gold > .tableContent > .table
+        const goldTable = $('.tab-currency-gold .table');
+        
+        if (goldTable.length === 0) {
+          this.logger.warn('Altın fiyatları tablosu bulunamadı');
+          return [];
         }
-      }
-      
-      // Browser'ı kapat
-      if (browser) {
-        try {
-          await browser.close();
-        } catch (e) {
-          // Browser zaten kapalı
+
+        // Tabloyu parse et
+        this.parseTable(goldTable, goldData, 0, $);
+
+        // Başarılı! Consecutive failures'ı sıfırla
+        this.consecutiveFailures = 0;
+        this.lastFailureTime = null;
+        
+        this.logger.debug(`Harem Altın'dan ${goldData.length} altın fiyatı başarıyla alındı (deneme ${attempt}/${maxRetries})`);
+        return goldData;
+      } catch (error: any) {
+        lastError = error;
+        this.logger.warn(`Harem Altın scraping denemesi ${attempt}/${maxRetries} başarısız: ${error.message}`);
+        
+        // Son deneme değilse, bir sonraki deneme öncesi bekle
+        if (attempt < maxRetries) {
+          const waitTime = 2000 * attempt; // 2s, 4s, 6s...
+          this.logger.debug(`${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      } finally {
+        // Cookie'leri kaydet (context kapanmadan ÖNCE - sayfa kapatılmadan önce)
+        if (context && page) {
+          try {
+            // Sayfa ve context hala açıkken cookie'leri kaydet
+            await this.scrapingService.saveCookiesManually(context, this.serviceName);
+          } catch (e: any) {
+            // Cookie kaydetme kritik değil, sadece debug log
+            if (!e.message?.includes('closed') && !e.message?.includes('Target')) {
+              this.logger.debug(`Cookie kaydetme hatası: ${e.message}`);
+            }
+          }
+        }
+        
+        // Sayfayı kapat
+        if (page) {
+          try {
+            await page.close();
+          } catch (e) {
+            // Sayfa zaten kapalı
+          }
+        }
+        
+        // Context'i kapat
+        if (context) {
+          try {
+            await context.close();
+          } catch (e) {
+            // Context zaten kapalı
+          }
+        }
+        
+        // Browser'ı kapat
+        if (browser) {
+          try {
+            await browser.close();
+          } catch (e) {
+            // Browser zaten kapalı
+          }
         }
       }
     }
+    
+    // Tüm denemeler başarısız
+    this.consecutiveFailures++;
+    this.lastFailureTime = Date.now();
+    
+    this.logger.error(
+      `Harem Altın scraping tüm denemeler başarısız: ${lastError?.message} ` +
+      `(${this.consecutiveFailures}/${this.MAX_CONSECUTIVE_FAILURES} başarısız deneme)`,
+      lastError?.stack
+    );
+    
+    // 5 başarısız denemeden sonra cooldown period'a gir
+    if (this.consecutiveFailures >= this.MAX_CONSECUTIVE_FAILURES) {
+      this.logger.warn(
+        `Harem Altın scraping ${this.MAX_CONSECUTIVE_FAILURES} kez başarısız oldu. ` +
+        `1 saat cooldown period başlatıldı. DB'den son veri kullanılacak.`
+      );
+    }
+    
+    return [];
   }
 
   /**
    * Tablodan altın fiyatlarını parse et
    */
   private parseTable($table: cheerio.Cheerio, goldData: MarketDataItem[], tableIndex: number, cheerioApi: ReturnType<typeof cheerio.load>): void {
-    const rows = $table.find('tbody tr, tr');
+    const rows = $table.find('tbody tr');
     
     if (rows.length === 0) {
       return;
@@ -130,48 +198,55 @@ export class HaremAltinProvider {
 
     rows.each((index, element) => {
       const $row = cheerioApi(element);
-      const cells = $row.find('td');
       
-      if (cells.length < 4) {
-        return; // Başlık satırı veya geçersiz satır (en az 4 sütun: isim, alış, satış, değişim)
+      // "GENİŞ TAKİP EKRANI" satırını atla
+      if ($row.find('.genis-takip-satir').length > 0) {
+        return;
       }
-
-      // İlk hücreden isim al - <a> tag'i içinde ve <br> ile bölünmüş olabilir
-      const firstCell = $row.find('td:first-child');
-      // HTML içeriğini al, sonra <br> tag'lerini boşlukla değiştir
-      let nameHtml = firstCell.find('a').html() || firstCell.html() || '';
-      // <br> tag'lerini boşlukla değiştir (büyük/küçük harf duyarsız)
-      let name = nameHtml.replace(/<br\s*\/?>/gi, ' ');
-      // Tüm HTML tag'lerini kaldır
-      name = name.replace(/<[^>]*>/g, '');
-      // Fazla boşlukları temizle ve normalize et
-      name = name.replace(/\s+/g, ' ').trim();
       
-      // Özel durumlar: Bitişik yazılan kelimeleri ayır
-      // YENİÇEYREK -> YENİ ÇEYREK, YENİYARIM -> YENİ YARIM, vs.
-      name = name.replace(/(YENİ|ESKİ)(ÇEYREK|YARIM|TAM|ATA|ATA5|GREMSE)/gi, '$1 $2');
-      name = name.replace(/(HAS)(ALTIN)/gi, '$1 $2');
-      name = name.replace(/(GRAM)(ALTIN)/gi, '$1 $2');
-      name = name.replace(/(22|14)(AYAR)/gi, '$1 $2');
-      name = name.replace(/(GÜMÜŞ|GUMUS)(TL|ONS|USD)/gi, '$1 $2');
-      name = name.replace(/(PLATİN|PLATIN|PALADYUM)(ONS|USD)/gi, '$1 $2');
-      name = name.replace(/(ALTIN)(GÜMÜŞ|GUMUS)/gi, '$1 $2');
+      // TR ID'sinden symbol çıkar (tr__ALTIN -> ALTIN, tr__KULCEALTIN -> KULCEALTIN)
+      const trId = $row.attr('id') || '';
+      const symbolFromId = trId.replace('tr__', '');
+      
+      if (!symbolFromId || symbolFromId.length === 0) {
+        return; // ID yoksa atla
+      }
+      
+      // İsim: .span-isim içindeki ilk text (br'den önceki kısım)
+      const nameSpan = $row.find('.span-isim');
+      let name = nameSpan.clone().children().remove().end().text().trim();
+      
+      // Eğer name boşsa, .priceHead.isim içindeki text'i al
+      if (!name || name.length === 0) {
+        name = $row.find('.priceHead.isim').text().trim();
+      }
+      
+      // HTML tag'lerini temizle
+      name = name.replace(/<[^>]*>/g, '').trim();
       
       if (!name || name.length === 0) {
         return;
       }
 
-      // İkinci sütun: Alış fiyatı (span.price içinde)
-      const buyPriceText = cells.eq(1).find('span.price').text().trim() || cells.eq(1).text().trim();
+      // Alış fiyatı: #alis__[SYMBOL]
+      const buyPriceId = `alis__${symbolFromId}`;
+      const buyPriceText = $row.find(`#${buyPriceId}`).text().trim();
       const buyPrice = this.parsePrice(buyPriceText, name);
 
-      // Üçüncü sütun: Satış fiyatı (span.price içinde)
-      const sellPriceText = cells.eq(2).find('span.price').text().trim() || cells.eq(2).text().trim();
+      // Satış fiyatı: #satis__[SYMBOL]
+      const sellPriceId = `satis__${symbolFromId}`;
+      const sellPriceText = $row.find(`#${sellPriceId}`).text().trim();
       const sellPrice = this.parsePrice(sellPriceText, name);
 
-      // Dördüncü sütun: Değişim yüzdesi (span.rate içinde, % işareti ile)
-      const changePercentText = cells.eq(3).find('span.rate').text().trim() || cells.eq(3).text().trim();
+      // Değişim yüzdesi: #yuzde__[SYMBOL]
+      const changePercentId = `yuzde__${symbolFromId}`;
+      const changePercentText = $row.find(`#${changePercentId}`).text().trim();
       const changePercent = this.parsePercent(changePercentText);
+      
+      // Yön kontrolü: updown__[SYMBOL] içindeki class'a göre (rise/drop)
+      const updownId = `updown__${symbolFromId}`;
+      const updownElement = $row.find(`#${updownId}`);
+      const isUp = updownElement.hasClass('rise');
 
       if (buyPrice === 0 && sellPrice === 0) {
         return; // Fiyat bulunamadı
@@ -180,104 +255,57 @@ export class HaremAltinProvider {
       const avgPrice = sellPrice > 0 ? (buyPrice + sellPrice) / 2 : buyPrice;
       const change = (changePercent / 100) * avgPrice;
 
-      // İsim normalizasyonu - <br> tag'lerini kaldır ve boşlukları düzenle
-      const normalizedName = name.toUpperCase().replace(/\s+/g, ' ').trim();
-
-      // Symbol mapping - tüm altın türlerini kapsayacak şekilde genişletildi
+      // Symbol mapping - ID'den gelen symbol'i normalize et
       const symbolMap: Record<string, string> = {
-        'HAS ALTIN': 'HAS_ALTIN',
-        'HAS': 'HAS_ALTIN',
+        'ALTIN': 'HAS_ALTIN',
         'ONS': 'ONS_ALTIN',
-        'GRAM ALTIN': 'GRAM_ALTIN',
-        'GRAM': 'GRAM_ALTIN',
-        '22 AYAR': 'AYAR_22',
-        '22': 'AYAR_22',
-        'YENİ ÇEYREK': 'CEYREK_YENI',
-        'ESKİ ÇEYREK': 'CEYREK_ESKI',
-        'ÇEYREK': 'CEYREK_ALTIN',
-        'YENİ YARIM': 'YARIM_YENI',
-        'ESKİ YARIM': 'YARIM_ESKI',
-        'YARIM': 'YARIM_ALTIN',
-        'YENİ TAM': 'TAM_YENI',
-        'ESKİ TAM': 'TAM_ESKI',
-        'TAM': 'TAM_ALTIN',
-        'YENİ ATA': 'ATA_YENI',
-        'ESKİ ATA': 'ATA_ESKI',
-        'ATA': 'ATA_ALTIN',
-        'YENİ ATA5': 'ATA5_YENI',
-        'ESKİ ATA5': 'ATA5_ESKI',
-        'ATA5': 'ATA_5LI',
-        'ATA 5': 'ATA_5LI',
-        'YENİ GREMSE': 'GREMSE_YENI',
-        'ESKİ GREMSE': 'GREMSE_ESKI',
-        'GREMSE': 'GREMSE_ALTIN',
-        '14 AYAR': 'AYAR_14',
-        '14': 'AYAR_14',
-        'GÜMÜŞ TL': 'GRAM_GUMUS',
-        'GÜMÜŞ ONS': 'ONS_GUMUS',
-        'GÜMÜŞ USD': 'GUMUS_USD',
-        'PLATİN ONS': 'PLATIN_ONS',
-        'PALADYUM ONS': 'PALADYUM_ONS',
-        'PLATİN/USD': 'PLATIN_USD',
-        'PALADYUM/USD': 'PALADYUM_USD',
+        'KULCEALTIN': 'GRAM_ALTIN',
+        'AYAR22': 'AYAR_22',
+        'CEYREK_YENI': 'CEYREK_YENI',
+        'CEYREK_ESKI': 'CEYREK_ESKI',
+        'YARIM_YENI': 'YARIM_YENI',
+        'YARIM_ESKI': 'YARIM_ESKI',
+        'TEK_YENI': 'TAM_YENI',
+        'TEK_ESKI': 'TAM_ESKI',
+        'ATA_YENI': 'ATA_YENI',
+        'ATA_ESKI': 'ATA_ESKI',
+        'ATA5_YENI': 'ATA5_YENI',
+        'ATA5_ESKI': 'ATA5_ESKI',
+        'GREMESE_YENI': 'GREMSE_YENI',
+        'GREMESE_ESKI': 'GREMSE_ESKI',
+        'AYAR14': 'AYAR_14',
+        'GUMUSTRY': 'GRAM_GUMUS',
+        'XAGUSD': 'ONS_GUMUS',
+        'GUMUSUSD': 'GUMUS_USD',
+        'XPTUSD': 'PLATIN_ONS',
+        'XPDUSD': 'PALADYUM_ONS',
+        'PLATIN': 'PLATIN_USD',
+        'PALADYUM': 'PALADYUM_USD',
+        'XAUXAG': 'ALTIN_GUMUS',
+        'USDKG': 'USD_KG',
+        'EURKG': 'EUR_KG',
       };
 
-      // Symbol bul - önce tam eşleşme, sonra kısmi eşleşme (uzun olanlar önce)
-      let symbol = symbolMap[normalizedName];
-      if (!symbol) {
-        // Kısmi eşleşme dene - önce daha spesifik (uzun) olanları kontrol et
-        const sortedKeys = Object.keys(symbolMap).sort((a, b) => b.length - a.length);
-        for (const key of sortedKeys) {
-          // Tam eşleşme öncelikli
-          if (normalizedName === key) {
-            symbol = symbolMap[key];
-            break;
-          }
-          // Kısmi eşleşme: normalizedName key'i içeriyorsa
-          if (normalizedName.includes(key) && normalizedName !== key) {
-            // Özel durumlar: "ONS" kısa olduğu için dikkatli ol
-            // "GÜMÜŞ ONS" için "GÜMÜŞ ONS" key'ini kullan, "ONS" değil
-            if (key === 'ONS') {
-              // Sadece "ONS" ise (GÜMÜŞ içermiyorsa) kullan
-              if (!normalizedName.includes('GÜMÜŞ') && !normalizedName.includes('GUMUS') && 
-                  !normalizedName.includes('PLATİN') && !normalizedName.includes('PLATIN') &&
-                  !normalizedName.includes('PALADYUM')) {
-                symbol = symbolMap[key];
-                break;
-              }
-            } else {
-              // Diğer key'ler için normal eşleşme
-              symbol = symbolMap[key];
-              break;
-            }
-          }
-        }
-      }
-      
-      // Eğer hala bulunamadıysa, isimden oluştur
-      if (!symbol) {
-        symbol = normalizedName.replace(/\s+/g, '_').replace(/\//g, '_');
-      }
-      
-      // YENİ/ESKİ prefix kontrolü - symbol mapping'de zaten var ama emin olmak için
-      // Eğer symbol mapping'de YENİ/ESKİ varsa zaten doğru, yoksa ekle
-      if ((normalizedName.includes('YENİ') || normalizedName.includes('ESKİ')) && 
-          !symbol.includes('YENI') && !symbol.includes('ESKI')) {
-        // Symbol mapping'de bulunamadıysa, prefix ekle
-        const prefix = normalizedName.includes('YENİ') ? 'YENI_' : 'ESKI_';
-        symbol = prefix + symbol;
-      }
+      // Symbol'ü ID'den al veya mapping'den bul
+      let symbol = symbolMap[symbolFromId] || symbolFromId;
 
-      // Atlanacak pattern'ler - sadece döviz çiftleri (USD/KG, EUR/KG)
+      // İsim normalizasyonu
+      const normalizedName = name.toUpperCase().replace(/\s+/g, ' ').trim();
+
+      // Atlanacak pattern'ler - döviz çiftleri (USD/KG, EUR/KG) - bunlar altın değil
       const skipPatterns = ['USD/KG', 'EUR/KG'];
-      const shouldSkip = skipPatterns.some(pattern => normalizedName === pattern || normalizedName === pattern.replace('/', '/'));
+      const shouldSkip = skipPatterns.some(pattern => 
+        normalizedName === pattern || 
+        normalizedName === pattern.replace('/', '/') ||
+        symbolFromId === 'USDKG' ||
+        symbolFromId === 'EURKG'
+      );
       
       if (shouldSkip) {
         return;
       }
 
       // Tüm altın/gümüş/platin/paladyum içeren satırları ekle
-      // ALTIN GÜMÜŞ oranını da ekle (altın/gümüş oranı)
       const isCommodity = normalizedName.includes('ALTIN') || 
           normalizedName.includes('GÜMÜŞ') || 
           normalizedName.includes('GUMUS') ||
@@ -291,7 +319,6 @@ export class HaremAltinProvider {
           normalizedName.includes('TAM') ||
           normalizedName.includes('ATA') ||
           normalizedName.includes('GREMSE') ||
-          symbolMap[normalizedName] ||
           symbol.includes('ALTIN') ||
           symbol.includes('GUMUS') ||
           symbol.includes('PLATIN') ||
@@ -301,7 +328,8 @@ export class HaremAltinProvider {
           symbol.includes('YARIM') ||
           symbol.includes('TAM') ||
           symbol.includes('ATA') ||
-          symbol.includes('GREMSE');
+          symbol.includes('GREMSE') ||
+          symbol.includes('ONS');
 
       if (isCommodity) {
         goldData.push({
@@ -310,7 +338,7 @@ export class HaremAltinProvider {
           price: buyPrice,
           change: change || 0,
           changePercent: changePercent || 0,
-          isUp: changePercent >= 0,
+          isUp: isUp,
           timestamp: Date.now(),
           category: 'commodity' as const,
           metadata: {

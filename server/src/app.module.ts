@@ -21,6 +21,8 @@ import { CacheModule } from './cache/cache.module';
 import { MarketDataModule } from './market-data/market-data.module';
 import { EconomicCalendarModule } from './economic-calendar/economic-calendar.module';
 import { IpoModule } from './ipo/ipo.module';
+import { ProxyModule } from './common/proxy/proxy.module';
+import { ScrapingModule } from './common/scraping/scraping.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { IpoModule } from './ipo/ipo.module';
       isGlobal: true,
     }),
     ScheduleModule.forRoot(),
+    ProxyModule,
+    ScrapingModule,
     PrismaModule,
     AuthModule,
     UsersModule,

@@ -48,7 +48,7 @@ export function Header() {
             <Link
               key={item.name}
               href={item.href}
-              className="flex items-center gap-2 text-sm font-medium text-(--color-foreground-muted) transition-colors hover:text-(--color-primary)"
+              className="flex items-center gap-2 text-sm font-medium text-(--color-foreground-muted) transition-colors hover:text-(--color-primary) cursor-pointer"
             >
               <item.icon className="h-4 w-4" />
               {item.name}
@@ -60,7 +60,7 @@ export function Header() {
             onMouseEnter={() => setIsCalendarOpen(true)}
             onMouseLeave={() => setIsCalendarOpen(false)}
           >
-            <button className="flex items-center gap-1 text-sm font-medium text-(--color-foreground-muted) transition-colors hover:text-(--color-primary)">
+            <button className="flex items-center gap-1 text-sm font-medium text-(--color-foreground-muted) transition-colors hover:text-(--color-primary) cursor-pointer">
               <Calendar className="h-4 w-4" />
               Takvimler
             </button>
@@ -71,7 +71,7 @@ export function Header() {
                     <Link
                       key={calendar.name}
                       href={calendar.href}
-                      className="block px-4 py-2.5 text-sm transition-colors hover:bg-(--color-accent) first:rounded-t-lg last:rounded-b-lg"
+                      className="block px-4 py-2.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground first:rounded-t-lg last:rounded-b-lg cursor-pointer"
                     >
                       {calendar.name}
                     </Link>
@@ -159,7 +159,7 @@ export function Header() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors hover:bg-(--color-accent)"
+                      className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors hover:bg-primary hover:text-primary-foreground cursor-pointer"
                     >
                       <item.icon className="h-5 w-5" />
                       {item.name}
@@ -176,7 +176,7 @@ export function Header() {
                         <Link
                           key={calendar.name}
                           href={calendar.href}
-                          className="block rounded-lg px-3 py-2.5 text-sm font-medium text-(--color-foreground-muted) transition-colors hover:bg-(--color-accent) hover:text-(--color-foreground)"
+                          className="block rounded-lg px-3 py-2.5 text-sm font-medium text-(--color-foreground-muted) transition-colors hover:bg-primary hover:text-primary-foreground cursor-pointer"
                         >
                           {calendar.name}
                         </Link>

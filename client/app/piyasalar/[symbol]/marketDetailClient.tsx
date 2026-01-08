@@ -1,15 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { ArrowLeft, Star, Bell, Share2, TrendingUp, TrendingDown, Calendar, Loader2 } from "lucide-react"
+import { ArrowLeft, Star, Bell, Share2, TrendingUp, TrendingDown, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { marketApi, MarketDetailResponse } from "@/lib/market-api"
 import { toast } from "sonner"
-import { PriceChart } from "@/components/markets/PriceChart"
 import { RelatedMarkets } from "@/components/markets/RelatedMarkets"
 import { favoriteMarketsApi } from "@/lib/favorite-markets-api"
 import { useAuth } from "@/contexts/auth-context"
@@ -22,7 +20,6 @@ interface MarketDetailClientProps {
 export default function MarketDetailClient({ symbol }: MarketDetailClientProps) {
   const router = useRouter()
   const { isAuthenticated } = useAuth()
-  const [timeRange, setTimeRange] = useState("1D")
   const [isFavorite, setIsFavorite] = useState(false)
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
@@ -151,37 +148,6 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
     )
   }
 
-  const technicalIndicators = [
-    { name: "RSI (14)", value: "52.34", signal: "Nötr" },
-    { name: "MACD (12,26)", value: "0.023", signal: "Al" },
-    { name: "MA (50)", value: "37.85", signal: "Al" },
-    { name: "MA (200)", value: "35.12", signal: "Güçlü Al" },
-    { name: "Bollinger Bantları", value: "38.20-38.90", signal: "Nötr" },
-    { name: "Stochastic", value: "68.45", signal: "Nötr" },
-  ]
-
-  // RelatedMarkets component'i kullanılacak, bu mock data kaldırıldı
-
-  const news = [
-    {
-      id: 1,
-      title: "Dolar/TL'de yeni rekor beklentisi",
-      date: "2 saat önce",
-      source: "Bloomberg HT",
-    },
-    {
-      id: 2,
-      title: "TCMB faiz kararı öncesi piyasalarda sakin seyir",
-      date: "5 saat önce",
-      source: "Investing.com",
-    },
-    {
-      id: 3,
-      title: "ABD enflasyon verileri dolar kurunu nasıl etkiler?",
-      date: "1 gün önce",
-      source: "Finanscözüm",
-    },
-  ]
 
   return (
     <div className="min-h-screen bg-background py-8">
@@ -231,25 +197,28 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Ana İçerik */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Fiyat Kartı */}
-            <Card>
-              <CardContent className="p-6">
+        {/* Fiyat Kartı - Ana Bilgi */}
+        <Card className="mb-6">
+          <CardContent className="p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <Badge variant="outline" className="text-sm px-3 py-1">{marketData.type}</Badge>
+                  <Badge variant="secondary" className="text-sm px-3 py-1">{marketData.category}</Badge>
+                </div>
                 <div className="flex items-end gap-4 mb-6">
-                  <div className="text-5xl font-bold">
+                  <div className="text-5xl md:text-6xl font-bold">
                     {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
                     {marketData.currentPrice.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
                   </div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 pb-2">
                     {marketData.changePercent > 0 ? (
                       <TrendingUp className="h-6 w-6 text-success" />
                     ) : (
                       <TrendingDown className="h-6 w-6 text-destructive" />
                     )}
                     <span
-                      className={`text-2xl font-semibold ${
+                      className={`text-xl md:text-2xl font-semibold ${
                         marketData.changePercent > 0 ? "text-success" : "text-destructive"
                       }`}
                     >
@@ -259,191 +228,116 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Fiyat Detayları */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground mb-1">Açılış</div>
-                    <div className="font-semibold">{marketData.open.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground mb-1">Yüksek</div>
-                    <div className="font-semibold text-success">{marketData.high.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground mb-1">Düşük</div>
-                    <div className="font-semibold text-destructive">{marketData.low.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground mb-1">Ö. Kapanış</div>
-                    <div className="font-semibold">{marketData.prevClose.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}</div>
-                  </div>
+            {/* Fiyat Detayları Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t">
+              <div>
+                <div className="text-sm text-muted-foreground mb-2">Açılış</div>
+                <div className="text-lg font-semibold">
+                  {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
+                  {marketData.open.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground mb-2">Yüksek</div>
+                <div className="text-lg font-semibold text-success">
+                  {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
+                  {marketData.high.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground mb-2">Düşük</div>
+                <div className="text-lg font-semibold text-destructive">
+                  {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
+                  {marketData.low.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground mb-2">Önceki Kapanış</div>
+                <div className="text-lg font-semibold">
+                  {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
+                  {marketData.prevClose.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            {/* Grafik */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Ana İçerik */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Temel Bilgiler */}
             <Card>
               <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <CardTitle>Fiyat Grafiği</CardTitle>
-                  <div className="flex gap-2 flex-wrap">
-                    {["1S", "1G", "1H", "1A", "3A", "1Y", "5Y", "Tümü"].map((range) => (
-                      <Button
-                        key={range}
-                        variant={timeRange === range ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setTimeRange(range)}
-                      >
-                        {range}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                <CardTitle>Temel Bilgiler</CardTitle>
               </CardHeader>
               <CardContent>
-                <PriceChart
-                  symbol={symbol}
-                  timeRange={timeRange}
-                  currentPrice={marketData.currentPrice}
-                  isUp={marketData.changePercent >= 0}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <div className="text-sm text-muted-foreground">Sembol</div>
+                    <div className="text-lg font-semibold">{marketData.symbol}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-sm text-muted-foreground">Ad</div>
+                    <div className="text-lg font-semibold">{marketData.name}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-sm text-muted-foreground">Tür</div>
+                    <div className="text-lg font-semibold">{marketData.type}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-sm text-muted-foreground">Kategori</div>
+                    <div className="text-lg font-semibold">{marketData.category}</div>
+                  </div>
+                  {marketData.volume && (
+                    <div className="space-y-1">
+                      <div className="text-sm text-muted-foreground">Günlük Hacim</div>
+                      <div className="text-lg font-semibold">{marketData.volume.toLocaleString('tr-TR')}</div>
+                    </div>
+                  )}
+                  {marketData.marketCap && (
+                    <div className="space-y-1">
+                      <div className="text-sm text-muted-foreground">Piyasa Değeri</div>
+                      <div className="text-lg font-semibold">{marketData.marketCap}</div>
+                    </div>
+                  )}
+                  {marketData.high52w && (
+                    <div className="space-y-1">
+                      <div className="text-sm text-muted-foreground">52 Hafta Yüksek</div>
+                      <div className="text-lg font-semibold text-success">
+                        {marketData.type === 'Kripto Para' ? '$' : '₺'}
+                        {marketData.high52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  )}
+                  {marketData.low52w && (
+                    <div className="space-y-1">
+                      <div className="text-sm text-muted-foreground">52 Hafta Düşük</div>
+                      <div className="text-lg font-semibold text-destructive">
+                        {marketData.type === 'Kripto Para' ? '$' : '₺'}
+                        {marketData.low52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  )}
+                  {marketData.lastUpdate && (
+                    <div className="space-y-1 sm:col-span-2">
+                      <div className="text-sm text-muted-foreground">Son Güncelleme</div>
+                      <div className="text-sm font-medium">
+                        {new Date(marketData.lastUpdate).toLocaleString('tr-TR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-
-            {/* Teknik Analiz ve Temel Bilgiler */}
-            <Tabs defaultValue="technical" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="technical">Teknik Analiz</TabsTrigger>
-                <TabsTrigger value="fundamentals">Temel Bilgiler</TabsTrigger>
-              </TabsList>
-              <TabsContent value="technical" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Teknik Göstergeler</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {technicalIndicators.map((indicator) => (
-                        <div
-                          key={indicator.name}
-                          className="flex items-center justify-between py-3 border-b last:border-0"
-                        >
-                          <div>
-                            <div className="font-medium">{indicator.name}</div>
-                            <div className="text-sm text-muted-foreground">{indicator.value}</div>
-                          </div>
-                          <Badge
-                            variant={
-                              indicator.signal.includes("Al")
-                                ? "default"
-                                : indicator.signal.includes("Sat")
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {indicator.signal}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Genel Teknik Görünüm</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Günlük</span>
-                        <Badge variant="default">AL</Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Haftalık</span>
-                        <Badge variant="default">GÜÇLÜ AL</Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Aylık</span>
-                        <Badge variant="secondary">NÖTR</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="fundamentals" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Temel Bilgiler</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="py-3 border-b">
-                        <div className="text-sm text-muted-foreground mb-1">Tür</div>
-                        <div className="font-medium">{marketData.type}</div>
-                      </div>
-                      <div className="py-3 border-b">
-                        <div className="text-sm text-muted-foreground mb-1">Kategori</div>
-                        <div className="font-medium">{marketData.category}</div>
-                      </div>
-                      {marketData.high52w && (
-                        <div className="py-3 border-b">
-                          <div className="text-sm text-muted-foreground mb-1">52 Hafta Yüksek</div>
-                          <div className="font-medium text-success">{marketData.high52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}</div>
-                        </div>
-                      )}
-                      {marketData.low52w && (
-                        <div className="py-3 border-b">
-                          <div className="text-sm text-muted-foreground mb-1">52 Hafta Düşük</div>
-                          <div className="font-medium text-destructive">{marketData.low52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}</div>
-                        </div>
-                      )}
-                      {marketData.volume && (
-                        <div className="py-3 border-b">
-                          <div className="text-sm text-muted-foreground mb-1">Günlük Hacim</div>
-                          <div className="font-medium">{marketData.volume.toLocaleString('tr-TR')}</div>
-                        </div>
-                      )}
-                      {marketData.marketCap && (
-                        <div className="py-3 border-b">
-                          <div className="text-sm text-muted-foreground mb-1">Piyasa Değeri</div>
-                          <div className="font-medium">{marketData.marketCap}</div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Önemli Seviyeler</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Destek 1</span>
-                          <span className="font-medium">38.20</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Destek 2</span>
-                          <span className="font-medium">37.85</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Direnç 1</span>
-                          <span className="font-medium">38.90</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Direnç 2</span>
-                          <span className="font-medium">39.25</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
           </div>
 
           {/* Yan Panel */}
@@ -463,54 +357,6 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                 })()}
               />
             )}
-
-            {/* Son Haberler */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Son Haberler</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {news.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/haberler/${item.id}`}
-                      className="block p-3 rounded-lg border hover:border-primary hover:bg-accent/50 transition-colors"
-                    >
-                      <h3 className="font-medium mb-2 line-clamp-2">{item.title}</h3>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{item.source}</span>
-                        <span>{item.date}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-                <Button variant="outline" className="w-full mt-4 bg-transparent" asChild>
-                  <Link href="/haberler">Tüm Haberleri Gör</Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Hızlı Araçlar */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Hesaplama Araçları</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                  <Link href="/araclar/doviz-cevirici">
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                    Döviz Çevirici
-                  </Link>
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                  <Link href="/araclar/kredi-hesaplama">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Kredi Hesaplama
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

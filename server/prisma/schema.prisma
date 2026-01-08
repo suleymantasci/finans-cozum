@@ -576,3 +576,23 @@ model IpoApplicationPlace {
   @@index([listingId])
   @@map("ipo_application_places")
 }
+
+// ==================== COMMODITY (ALTIN) DAILY DATA ====================
+
+model CommodityDailyData {
+  id            String   @id @default(uuid())
+  date          DateTime @db.Date // Tarih (sadece tarih, saat yok)
+  hour          Int      // Saat (0-23) - saat başı kayıt için
+  
+  // Altın verileri (JSON formatında saklanacak)
+  // Format: MarketDataItem[] array
+  commodityData Json     // Tüm altın/gümüş/platin fiyatları
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([date, hour], name: "date_hour")
+  @@index([date])
+  @@index([date, hour])
+  @@map("commodity_daily_data")
+}

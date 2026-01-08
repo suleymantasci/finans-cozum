@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { chromium, Browser, Page } from 'playwright';
+import { Browser, Page } from 'playwright';
 import { IpoService } from './ipo.service';
 import { IpoStatus } from '../generated/prisma/enums';
+import { ScrapingService } from '../common/scraping/scraping.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
@@ -23,8 +24,12 @@ interface ScrapedListing {
 export class IpoScraperService {
   private readonly logger = new Logger(IpoScraperService.name);
   private readonly uploadDir = path.join(process.cwd(), 'uploads', 'ipo');
+  private readonly serviceName = 'ipo-scraper';
 
-  constructor(private readonly ipoService: IpoService) {
+  constructor(
+    private readonly ipoService: IpoService,
+    private readonly scrapingService: ScrapingService,
+  ) {
     // Ensure upload directory exists
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
@@ -48,11 +53,19 @@ export class IpoScraperService {
     let browser: Browser | null = null;
 
     try {
-      browser = await chromium.launch({ headless: true });
-      const page = await browser.newPage();
+      // Ortak scraping servisi ile browser oluştur
+      const { browser: createdBrowser, context: createdContext, page: createdPage } = 
+        await this.scrapingService.createStealthBrowser(this.serviceName);
+      
+      browser = createdBrowser;
+      const context = createdContext;
+      const page = createdPage;
 
-      // Navigate to the main page
-      await page.goto('https://halkarz.com/', { waitUntil: 'networkidle' });
+      // Navigate to the main page (gerçekçi şekilde)
+      await this.scrapingService.navigateWithStealth(page, 'https://halkarz.com/', {
+        waitUntil: 'networkidle',
+        timeout: 60000,
+      });
 
       // Click "Load More" button until all listings are loaded
       await this.loadAllListings(page);
@@ -147,10 +160,19 @@ export class IpoScraperService {
     let browser: Browser | null = null;
 
     try {
-      browser = await chromium.launch({ headless: true });
-      const page = await browser.newPage();
+      // Ortak scraping servisi ile browser oluştur
+      const { browser: createdBrowser, context: createdContext, page: createdPage } = 
+        await this.scrapingService.createStealthBrowser(this.serviceName);
+      
+      browser = createdBrowser;
+      const context = createdContext;
+      const page = createdPage;
 
-      await page.goto('https://halkarz.com/', { waitUntil: 'networkidle' });
+      // Navigate to the main page (gerçekçi şekilde)
+      await this.scrapingService.navigateWithStealth(page, 'https://halkarz.com/', {
+        waitUntil: 'networkidle',
+        timeout: 60000,
+      });
 
       // Only load first page for daily sync
       const listings = await this.scrapeListingsFromPage(page);
@@ -346,10 +368,19 @@ export class IpoScraperService {
     let foundBistCode: string | null = null;
 
     try {
-      browser = await chromium.launch({ headless: true });
-      const page = await browser.newPage();
+      // Ortak scraping servisi ile browser oluştur
+      const { browser: createdBrowser, context: createdContext, page: createdPage } = 
+        await this.scrapingService.createStealthBrowser(this.serviceName);
+      
+      browser = createdBrowser;
+      const context = createdContext;
+      const page = createdPage;
 
-      await page.goto(detailUrl, { waitUntil: 'networkidle' });
+      // Navigate to detail page (gerçekçi şekilde)
+      await this.scrapingService.navigateWithStealth(page, detailUrl, {
+        waitUntil: 'networkidle',
+        timeout: 60000,
+      });
 
       // Extract detail data
       const detailFullData = await page.evaluate(() => {
@@ -388,7 +419,7 @@ export class IpoScraperService {
                 // Genel "Pay" kontrolü - ama "Fiili Dolaşımdaki Pay" içermemeli
                 // Ayrıca "Oranı" veya "Oran" içermemeli (bu actualCirculationPct için)
                 if (!label.includes('Oranı') && !label.includes('Oran')) {
-                  data.shareAmount = valueCell.querySelector('strong')?.textContent?.trim();
+                data.shareAmount = valueCell.querySelector('strong')?.textContent?.trim();
                 }
               } else if (label.includes('Aracı Kurum')) {
                 data.intermediary = valueCell.querySelector('strong')?.textContent?.trim();

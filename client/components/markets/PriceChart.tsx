@@ -34,11 +34,11 @@ export function PriceChart({ symbol, timeRange, currentPrice, isUp }: PriceChart
   const loadChartData = async () => {
     try {
       setLoading(true)
-      const days = timeRangeToDays[timeRange] || 30
-      const history = await marketApi.getMarketHistory(symbol, days)
-      setData(history)
+      // Grafik verisi şu anda kullanılamıyor, boş veri göster
+      setData([])
     } catch (error) {
       console.error('Grafik verileri yüklenemedi:', error)
+      setData([])
     } finally {
       setLoading(false)
     }
