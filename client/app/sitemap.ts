@@ -14,7 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/araclar/faiz-hesaplama",
     "/piyasalar",
     "/haberler",
-    "/bankalar",
     "/giris",
     "/kayit",
   ].map((route) => ({

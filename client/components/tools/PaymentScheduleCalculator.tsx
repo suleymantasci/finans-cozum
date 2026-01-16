@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,11 +17,29 @@ import { FormattedNumberInput } from '@/lib/utils/number-input'
  * KKDF ve BSMV dahil kümülatif bilgiler
  */
 export default function PaymentScheduleCalculator({ config }: ToolComponentProps) {
-  const [principal, setPrincipal] = useState(config?.defaultValues?.principal || 100000)
-  const [rate, setRate] = useState(config?.defaultValues?.rate || 1.8)
-  const [months, setMonths] = useState(config?.defaultValues?.months || 36)
-  const [rateType, setRateType] = useState<'monthly' | 'annual'>('monthly')
-  const [creditType, setCreditType] = useState<CreditType>('none')
+  const searchParams = useSearchParams()
+  
+  // Query parametrelerinden değerleri oku (hero section'dan gelebilir)
+  const queryPrincipal = searchParams.get('principal')
+  const queryRate = searchParams.get('rate')
+  const queryMonths = searchParams.get('months')
+  const queryCreditType = searchParams.get('creditType') as CreditType | null
+  const queryRateType = searchParams.get('rateType') as 'monthly' | 'annual' | null
+
+  const [principal, setPrincipal] = useState(() => {
+    if (queryPrincipal) return parseFloat(queryPrincipal) || config?.defaultValues?.principal || 100000
+    return config?.defaultValues?.principal || 100000
+  })
+  const [rate, setRate] = useState(() => {
+    if (queryRate) return parseFloat(queryRate) || config?.defaultValues?.rate || 1.8
+    return config?.defaultValues?.rate || 1.8
+  })
+  const [months, setMonths] = useState(() => {
+    if (queryMonths) return parseInt(queryMonths) || config?.defaultValues?.months || 36
+    return config?.defaultValues?.months || 36
+  })
+  const [rateType, setRateType] = useState<'monthly' | 'annual'>(queryRateType || 'monthly')
+  const [creditType, setCreditType] = useState<CreditType>(queryCreditType || 'none')
   const [result, setResult] = useState<any>(null)
 
   const calculate = () => {
@@ -112,6 +131,18 @@ export default function PaymentScheduleCalculator({ config }: ToolComponentProps
       principal,
     })
   }
+
+  // Query parametreleri varsa otomatik hesapla
+  useEffect(() => {
+    if (queryPrincipal || queryRate || queryMonths || queryCreditType) {
+      // Kısa bir gecikme ile hesapla (component mount olduktan sonra)
+      const timer = setTimeout(() => {
+        calculate()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Sadece mount'ta çalış, calculate fonksiyonu state'e bağlı
 
   return (
     <Card>

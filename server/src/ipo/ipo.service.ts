@@ -374,4 +374,80 @@ export class IpoService {
 
     return existingDetail.lastModified !== newLastModified;
   }
+
+  /**
+   * Get all draft listings from database
+   */
+  async getAllDraftListings() {
+    return this.prisma.ipoListing.findMany({
+      where: { status: IpoStatus.DRAFT },
+      select: {
+        id: true,
+        bistCode: true,
+        companyName: true,
+        detailUrl: true,
+        status: true,
+      },
+    });
+  }
+
+  /**
+   * Get all non-draft listings from database
+   */
+  async getAllNonDraftListings() {
+    return this.prisma.ipoListing.findMany({
+      where: {
+        status: {
+          not: IpoStatus.DRAFT,
+        },
+      },
+      select: {
+        id: true,
+        bistCode: true,
+        companyName: true,
+        detailUrl: true,
+        status: true,
+      },
+    });
+  }
+
+  /**
+   * Update listing status
+   */
+  async updateListingStatus(id: string, status: IpoStatus) {
+    return this.prisma.ipoListing.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  /**
+   * Find duplicate listings by company name or detail URL
+   * Returns all listings that might be duplicates
+   */
+  async findDuplicateListings(companyName: string, detailUrl: string) {
+    return this.prisma.ipoListing.findMany({
+      where: {
+        OR: [
+          { companyName: { equals: companyName, mode: 'insensitive' } },
+          { detailUrl },
+        ],
+      },
+      include: {
+        detail: true,
+      },
+      orderBy: {
+        createdAt: 'desc', // En yeni önce
+      },
+    });
+  }
+
+  /**
+   * Delete a listing by ID (cascades to detail, results, etc.)
+   */
+  async deleteListing(id: string) {
+    return this.prisma.ipoListing.delete({
+      where: { id },
+    });
+  }
 }

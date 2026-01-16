@@ -3,7 +3,7 @@ import { LiveMarketTicker } from "@/components/sections/live-market-ticker"
 import { FeaturedTools } from "@/components/sections/featured-tools"
 import { MarketOverview } from "@/components/sections/market-overview"
 import { LatestNews } from "@/components/sections/latest-news"
-import { BankComparison } from "@/components/sections/bank-comparison"
+// import { BankComparison } from "@/components/sections/bank-comparison"
 import { CTASection } from "@/components/sections/cta-section"
 
 export default function HomePage() {
@@ -14,7 +14,7 @@ export default function HomePage() {
       <FeaturedTools />
       <MarketOverview />
       <LatestNews />
-      <BankComparison />
+      {/* <BankComparison /> */}
       <CTASection />
     </div>
   )

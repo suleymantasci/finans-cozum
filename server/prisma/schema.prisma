@@ -30,10 +30,10 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  news          News[]
-  favoriteNews  FavoriteNews[]
+  news            News[]
+  favoriteNews    FavoriteNews[]
   favoriteMarkets FavoriteMarket[]
-  favoriteTools FavoriteTool[]
+  favoriteTools   FavoriteTool[]
 
   @@map("users")
 }
@@ -56,8 +56,8 @@ model FavoriteMarket {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  symbol    String   // Örn: "USD/TRY", "BTC", "AKBNK"
-  category  String   // "forex" | "crypto" | "stock" | "commodity"
+  symbol    String // Örn: "USD/TRY", "BTC", "AKBNK"
+  category  String // "forex" | "crypto" | "stock" | "commodity"
   createdAt DateTime @default(now())
 
   @@unique([userId, symbol, category])
@@ -124,7 +124,7 @@ model News {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  favoriteBy      FavoriteNews[]
+  favoriteBy FavoriteNews[]
 
   @@index([categoryId])
   @@index([status])
@@ -137,38 +137,38 @@ model News {
 // ==================== NEWS ADS SYSTEM ====================
 
 enum NewsAdSlotPosition {
-  TOP           // Liste sayfasının üstünde
-  BETWEEN_NEWS  // Haberler arasında (liste sayfasında)
-  SIDEBAR_LEFT  // Sol sidebar (detay sayfasında)
+  TOP // Liste sayfasının üstünde
+  BETWEEN_NEWS // Haberler arasında (liste sayfasında)
+  SIDEBAR_LEFT // Sol sidebar (detay sayfasında)
   SIDEBAR_RIGHT // Sağ sidebar (detay sayfasında)
-  AFTER_IMAGE   // Görsel sonrası (detay sayfasında)
-  IN_CONTENT    // İçerik içinde (detay sayfasında)
-  BOTTOM        // Sayfanın altında
+  AFTER_IMAGE // Görsel sonrası (detay sayfasında)
+  IN_CONTENT // İçerik içinde (detay sayfasında)
+  BOTTOM // Sayfanın altında
 }
 
 model NewsAdSlot {
-  id          String            @id @default(uuid())
-  position    NewsAdSlotPosition
-  isActive    Boolean           @default(true)
-  order       Int               @default(0)
+  id       String             @id @default(uuid())
+  position NewsAdSlotPosition
+  isActive Boolean            @default(true)
+  order    Int                @default(0)
 
   // Reklam içeriği
-  content     String?           @db.Text // HTML/JS reklam kodu
-  scriptUrl   String?           // External script URL
-  imageUrl    String?           // Reklam görseli
-  linkUrl     String?           // Reklam linki
+  content   String? @db.Text // HTML/JS reklam kodu
+  scriptUrl String? // External script URL
+  imageUrl  String? // Reklam görseli
+  linkUrl   String? // Reklam linki
 
   // Görünürlük ayarları
-  showOnMobile  Boolean         @default(true)
-  showOnTablet  Boolean         @default(true)
-  showOnDesktop Boolean         @default(true)
+  showOnMobile  Boolean @default(true)
+  showOnTablet  Boolean @default(true)
+  showOnDesktop Boolean @default(true)
 
   // Tarih aralığı
-  startDate   DateTime?
-  endDate     DateTime?
+  startDate DateTime?
+  endDate   DateTime?
 
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([position])
   @@index([isActive])
@@ -260,10 +260,10 @@ model Tool {
   views Int @default(0)
 
   // Relations
-  categoryId String?
-  category   ToolCategory?  @relation(fields: [categoryId], references: [id])
-  adSlots    ToolAdSlot[]
-  dataSyncs  ToolDataSync[]
+  categoryId  String?
+  category    ToolCategory?  @relation(fields: [categoryId], references: [id])
+  adSlots     ToolAdSlot[]
+  dataSyncs   ToolDataSync[]
   favoritedBy FavoriteTool[]
 
   createdAt DateTime @default(now())
@@ -417,34 +417,34 @@ model ExternalData {
 // ==================== BIST MARKET DATA ====================
 
 model BistDailyData {
-  id            String   @id @default(uuid())
-  symbol        String   // Hisse sembolü (örn: AKBNK)
-  date          DateTime @db.Date // Tarih (sadece tarih, saat yok)
-  
+  id     String   @id @default(uuid())
+  symbol String // Hisse sembolü (örn: AKBNK)
+  date   DateTime @db.Date // Tarih (sadece tarih, saat yok)
+
   // Fiyat Bilgileri
-  price         Float    // Kapanış fiyatı
-  open          Float    // Açılış fiyatı
-  high          Float    // En yüksek
-  low           Float    // En düşük
-  prevClose     Float    // Önceki gün kapanış
-  
+  price     Float // Kapanış fiyatı
+  open      Float // Açılış fiyatı
+  high      Float // En yüksek
+  low       Float // En düşük
+  prevClose Float // Önceki gün kapanış
+
   // Değişim
-  change        Float    // Değişim miktarı
-  changePercent Float    // Değişim yüzdesi
-  
+  change        Float // Değişim miktarı
+  changePercent Float // Değişim yüzdesi
+
   // Hacim
-  volume        Float    // Hacim (Lot)
-  volumeTL      Float    // Hacim (TL)
-  
+  volume   Float // Hacim (Lot)
+  volumeTL Float // Hacim (TL)
+
   // Alış/Satış
-  buy           Float?
-  sell          Float?
-  
+  buy  Float?
+  sell Float?
+
   // BIST Grupları
-  bistGroups    String[] // ['BIST', 'BIST 100', 'BIST 50', vb.]
-  
+  bistGroups String[] // ['BIST', 'BIST 100', 'BIST 50', vb.]
+
   // Metadata
-  lastTradeTime String?  // Son işlem saati
+  lastTradeTime String? // Son işlem saati
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -458,15 +458,15 @@ model BistDailyData {
 // ==================== TCMB FOREX DATA ====================
 
 model TcmbDailyData {
-  id            String   @id @default(uuid())
-  date          DateTime @db.Date // Tarih (sadece tarih, saat yok)
-  
+  id   String   @id @default(uuid())
+  date DateTime @db.Date // Tarih (sadece tarih, saat yok)
+
   // Döviz Kurları (JSON formatında saklanacak)
   // Format: { "USD/TRY": { code: "USD", pair: "USD/TRY", name: "Amerikan Doları", price: 34.56, buy: 34.50, sell: 34.60 }, ... }
-  forexData     Json     // Tüm döviz kurları
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  forexData Json // Tüm döviz kurları
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([date])
   @@index([date])
@@ -476,32 +476,33 @@ model TcmbDailyData {
 // ==================== IPO (HALKA ARZ) DATA ====================
 
 enum IpoStatus {
-  UPCOMING      // Yaklaşan halka arz
-  COMPLETED     // Sonuçlanmış halka arz
-  DRAFT         // Taslak
+  UPCOMING // Yaklaşan halka arz
+  COMPLETED // Sonuçlanmış halka arz
+  DRAFT // Taslak
+  CANCELLED // İptal edilmiş veya listeden çıkarılmış
 }
 
 model IpoListing {
-  id              String      @id @default(uuid())
-  bistCode        String      @unique // BIST kodu (örn: FRMPL, PAHOL) - unique identifier
-  companyName     String      // Şirket adı
-  ipoDate         String      // Halka arz tarihi (text format)
-  detailUrl       String      // Detay sayfası URL
-  logoUrl         String?     // Logo URL
-  
+  id          String  @id @default(uuid())
+  bistCode    String  @unique // BIST kodu (örn: FRMPL, PAHOL) - unique identifier
+  companyName String // Şirket adı
+  ipoDate     String // Halka arz tarihi (text format)
+  detailUrl   String // Detay sayfası URL
+  logoUrl     String? // Logo URL
+
   // Status Badges
-  isNew           Boolean     @default(false) // il-new badge
-  hasResults      Boolean     @default(false) // snc-badge (sonuçlar açıklandı)
-  status          IpoStatus   @default(UPCOMING)
-  
+  isNew      Boolean   @default(false) // il-new badge
+  hasResults Boolean   @default(false) // snc-badge (sonuçlar açıklandı)
+  status     IpoStatus @default(UPCOMING)
+
   // Relations
-  detail          IpoDetail?
-  results         IpoResult?
+  detail            IpoDetail?
+  results           IpoResult?
   applicationPlaces IpoApplicationPlace[]
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([bistCode])
   @@index([status])
   @@index([isNew])
@@ -510,69 +511,69 @@ model IpoListing {
 }
 
 model IpoDetail {
-  id                    String      @id @default(uuid())
-  listingId             String      @unique
-  listing               IpoListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  
+  id        String     @id @default(uuid())
+  listingId String     @unique
+  listing   IpoListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
   // Basic Info (from sp-table)
-  ipoDate               String?
-  ipoDateTimeRange      String?     // Saat aralığı (örn: 09:00-17:00)
-  ipoPrice              String?     // Halka arz fiyatı/aralığı
-  distributionMethod    String?     // Dağıtım yöntemi
-  shareAmount           String?     // Pay miktarı
-  intermediary          String?     // Aracı kurum
-  consortium            String[]    // Konsorsiyum üyeleri
-  actualCirculation     String?     // Fiili dolaşımdaki pay (for completed)
-  actualCirculationPct  String?     // Fiili dolaşımdaki pay oranı
-  firstTradeDate        String?     // BIST ilk işlem tarihi
-  market                String?     // Pazar (Ana Pazar, Yıldız Pazar, etc.)
-  
+  ipoDate              String?
+  ipoDateTimeRange     String? // Saat aralığı (örn: 09:00-17:00)
+  ipoPrice             String? // Halka arz fiyatı/aralığı
+  distributionMethod   String? // Dağıtım yöntemi
+  shareAmount          String? // Pay miktarı
+  intermediary         String? // Aracı kurum
+  consortium           String[] // Konsorsiyum üyeleri
+  actualCirculation    String? // Fiili dolaşımdaki pay (for completed)
+  actualCirculationPct String? // Fiili dolaşımdaki pay oranı
+  firstTradeDate       String? // BIST ilk işlem tarihi
+  market               String? // Pazar (Ana Pazar, Yıldız Pazar, etc.)
+
   // Summary Info (Özet Bilgiler) - stored as JSON
-  summaryInfo           Json?       // Halka arz şekli, fon kullanımı, tahsisat grupları, etc.
-  
+  summaryInfo Json? // Halka arz şekli, fon kullanımı, tahsisat grupları, etc.
+
   // Company Info
-  companyDescription    String?     @db.Text
-  city                  String?
-  foundedDate           String?
-  
+  companyDescription String? @db.Text
+  city               String?
+  foundedDate        String?
+
   // Attachments (Ekler) - stored as JSON array
-  attachments           Json?       // PDF links
-  
-  lastModified          String?     // Son güncelleme tarihi
-  
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-  
+  attachments Json? // PDF links
+
+  lastModified String? // Son güncelleme tarihi
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([listingId])
   @@map("ipo_details")
 }
 
 model IpoResult {
-  id                String      @id @default(uuid())
-  listingId         String      @unique
-  listing           IpoListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  
+  id        String     @id @default(uuid())
+  listingId String     @unique
+  listing   IpoListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
   // Results Table Data (as-table)
-  resultsData       Json        // Yatırımcı grubu, kişi sayısı, lot, oran
-  
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  
+  resultsData Json // Yatırımcı grubu, kişi sayısı, lot, oran
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([listingId])
   @@map("ipo_results")
 }
 
 model IpoApplicationPlace {
-  id                String      @id @default(uuid())
-  listingId         String
-  listing           IpoListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  
-  name              String      // Kurum adı
-  isConsortium      Boolean     @default(false) // Konsorsiyum üyesi mi
-  isUnlisted        Boolean     @default(false) // unlist class'ı var mı
-  
-  createdAt         DateTime    @default(now())
-  
+  id        String     @id @default(uuid())
+  listingId String
+  listing   IpoListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  name         String // Kurum adı
+  isConsortium Boolean @default(false) // Konsorsiyum üyesi mi
+  isUnlisted   Boolean @default(false) // unlist class'ı var mı
+
+  createdAt DateTime @default(now())
+
   @@index([listingId])
   @@map("ipo_application_places")
 }
@@ -580,16 +581,16 @@ model IpoApplicationPlace {
 // ==================== COMMODITY (ALTIN) DAILY DATA ====================
 
 model CommodityDailyData {
-  id            String   @id @default(uuid())
-  date          DateTime @db.Date // Tarih (sadece tarih, saat yok)
-  hour          Int      // Saat (0-23) - saat başı kayıt için
-  
+  id   String   @id @default(uuid())
+  date DateTime @db.Date // Tarih (sadece tarih, saat yok)
+  hour Int // Saat (0-23) - saat başı kayıt için
+
   // Altın verileri (JSON formatında saklanacak)
   // Format: MarketDataItem[] array
-  commodityData Json     // Tüm altın/gümüş/platin fiyatları
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  commodityData Json // Tüm altın/gümüş/platin fiyatları
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([date, hour], name: "date_hour")
   @@index([date])

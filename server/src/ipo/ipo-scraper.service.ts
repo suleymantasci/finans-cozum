@@ -3,6 +3,7 @@ import { Browser, Page } from 'playwright';
 import { IpoService } from './ipo.service';
 import { IpoStatus } from '../generated/prisma/enums';
 import { ScrapingService } from '../common/scraping/scraping.service';
+import { PrismaService } from '../prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
@@ -29,6 +30,7 @@ export class IpoScraperService {
   constructor(
     private readonly ipoService: IpoService,
     private readonly scrapingService: ScrapingService,
+    private readonly prisma: PrismaService,
   ) {
     // Ensure upload directory exists
     if (!fs.existsSync(this.uploadDir)) {
@@ -157,6 +159,10 @@ export class IpoScraperService {
    * 1. Tüm sayfaları yükler ve tüm listingleri scrape eder
    * 2. isDraft olanların hepsini işler (sıralamadan bağımsız, hepsi kontrol edilir)
    * 3. isDraft olmayanlardan ilk 50'yi alır ve hepsinin hem liste hem detayını günceller
+   * 4. DB'deki kayıtları kontrol eder:
+   *    - Taslak listede yoksa ve arz listesinde de yoksa -> CANCELLED
+   *    - Taslak listede yoksa ama arz listesinde varsa -> status'u aktif yap
+   *    - Aktif listede yoksa -> CANCELLED
    */
   async scrapeDailyUpdates(): Promise<void> {
     this.logger.log('Starting IPO sync - tüm listingler kontrol ediliyor...');
@@ -184,6 +190,26 @@ export class IpoScraperService {
       const allListings = await this.scrapeListingsFromPage(page);
       this.logger.log(`Toplam ${allListings.length} listing bulundu`);
 
+      // Scraped listingler için lookup setleri oluştur (hızlı kontrol için)
+      const scrapedBistCodes = new Set<string>();
+      const scrapedDetailUrls = new Set<string>();
+      const scrapedDraftBistCodes = new Set<string>();
+      const scrapedDraftDetailUrls = new Set<string>();
+      const scrapedNonDraftBistCodes = new Set<string>();
+      const scrapedNonDraftDetailUrls = new Set<string>();
+
+      allListings.forEach(listing => {
+        scrapedBistCodes.add(listing.bistCode.toLowerCase());
+        scrapedDetailUrls.add(listing.detailUrl);
+        if (listing.isDraft) {
+          scrapedDraftBistCodes.add(listing.bistCode.toLowerCase());
+          scrapedDraftDetailUrls.add(listing.detailUrl);
+        } else {
+          scrapedNonDraftBistCodes.add(listing.bistCode.toLowerCase());
+          scrapedNonDraftDetailUrls.add(listing.detailUrl);
+        }
+      });
+
       // isDraft olanları ve olmayanları ayır
       const draftListings = allListings.filter(l => l.isDraft);
       const nonDraftListings = allListings.filter(l => !l.isDraft);
@@ -197,6 +223,7 @@ export class IpoScraperService {
       let newCount = 0;
       let updatedCount = 0;
       let skippedCount = 0;
+      let cancelledCount = 0;
 
       // Önce isDraft olanların hepsini işle
       for (const listing of draftListings) {
@@ -363,7 +390,84 @@ export class IpoScraperService {
         }
       }
 
-      this.logger.log(`Sync tamamlandı: ${newCount} yeni, ${updatedCount} güncellenmiş`);
+      // DB'deki taslak kayıtları kontrol et ve güncelle
+      this.logger.log('DB\'deki taslak kayıtlar kontrol ediliyor...');
+      const dbDraftListings = await this.ipoService.getAllDraftListings();
+      
+      for (const dbDraft of dbDraftListings) {
+        const bistCodeLower = dbDraft.bistCode.toLowerCase();
+        const inDraftList = scrapedDraftBistCodes.has(bistCodeLower) || scrapedDraftDetailUrls.has(dbDraft.detailUrl);
+        const inNonDraftList = scrapedNonDraftBistCodes.has(bistCodeLower) || scrapedNonDraftDetailUrls.has(dbDraft.detailUrl);
+        
+        if (!inDraftList && !inNonDraftList) {
+          // Taslak listede yok ve arz listesinde de yok -> iptal edilmiş
+          this.logger.log(`Taslak kayıt listede bulunamadı, iptal ediliyor: ${dbDraft.companyName} (${dbDraft.bistCode})`);
+          await this.ipoService.updateListingStatus(dbDraft.id, IpoStatus.CANCELLED);
+          cancelledCount++;
+        } else if (!inDraftList && inNonDraftList) {
+          // Taslak listede yok ama arz listesinde var -> arza geçmiş, status güncellenecek (zaten non-draft işleme aşamasında yapılacak)
+          this.logger.log(`Taslak kayıt arza geçmiş: ${dbDraft.companyName} (${dbDraft.bistCode}) - status non-draft işleme aşamasında güncellenecek`);
+        }
+        // Eğer taslak listede varsa, zaten yukarıdaki loop'ta işlenecek
+      }
+
+      // DB'deki aktif (non-draft) kayıtları kontrol et
+      this.logger.log('DB\'deki aktif kayıtlar kontrol ediliyor...');
+      const dbNonDraftListings = await this.ipoService.getAllNonDraftListings();
+      
+      for (const dbNonDraft of dbNonDraftListings) {
+        // İlk 50'de işlenen kayıtları atla (zaten güncellenmiş)
+        const wasProcessed = topNonDraftListings.some(
+          l => l.bistCode.toLowerCase() === dbNonDraft.bistCode.toLowerCase() || l.detailUrl === dbNonDraft.detailUrl
+        );
+        
+        if (!wasProcessed) {
+          const bistCodeLower = dbNonDraft.bistCode.toLowerCase();
+          const inScrapedList = scrapedBistCodes.has(bistCodeLower) || scrapedDetailUrls.has(dbNonDraft.detailUrl);
+          
+          if (!inScrapedList && dbNonDraft.status !== IpoStatus.CANCELLED) {
+            // Aktif listede yok -> iptal edilmiş
+            this.logger.log(`Aktif kayıt listede bulunamadı, iptal ediliyor: ${dbNonDraft.companyName} (${dbNonDraft.bistCode})`);
+            await this.ipoService.updateListingStatus(dbNonDraft.id, IpoStatus.CANCELLED);
+            cancelledCount++;
+          }
+        }
+      }
+
+      // Duplicate kayıtları temizle
+      this.logger.log('Duplicate kayıtlar kontrol ediliyor...');
+      const allDbListings = await this.prisma.ipoListing.findMany({
+        include: { detail: true },
+      });
+
+      const companyGroups = new Map<string, typeof allDbListings>();
+      for (const listing of allDbListings) {
+        const key = listing.companyName.toLowerCase().trim();
+        if (!companyGroups.has(key)) {
+          companyGroups.set(key, []);
+        }
+        companyGroups.get(key)!.push(listing);
+      }
+
+      let duplicateDeletedCount = 0;
+      for (const [companyName, listings] of companyGroups.entries()) {
+        if (listings.length > 1) {
+          this.logger.warn(`Duplicate kayıt bulundu: ${companyName} (${listings.length} adet)`);
+          
+          // Detayı olan kaydı tut, yoksa en yenisini tut
+          const withDetail = listings.find(l => l.detail);
+          const toKeep = withDetail || listings[0]; // En yeni olan (sıralama zaten desc)
+          const toDelete = listings.filter(l => l.id !== toKeep.id);
+          
+          for (const listing of toDelete) {
+            this.logger.log(`Duplicate kayıt siliniyor: ${listing.companyName} (${listing.bistCode})`);
+            await this.ipoService.deleteListing(listing.id);
+            duplicateDeletedCount++;
+          }
+        }
+      }
+
+      this.logger.log(`Sync tamamlandı: ${newCount} yeni, ${updatedCount} güncellenmiş, ${cancelledCount} iptal edildi, ${duplicateDeletedCount} duplicate silindi`);
     } catch (error) {
       this.logger.error(`Sync failed: ${error.message}`, error.stack);
       throw error;

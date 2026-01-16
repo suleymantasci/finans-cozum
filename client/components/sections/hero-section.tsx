@@ -1,8 +1,37 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Calculator, TrendingUp, ArrowRight } from "lucide-react"
+import { Calculator, TrendingUp, ArrowRight, CreditCard } from "lucide-react"
+import { useMemo } from "react"
+import { calculateTaxes, convertInterestRate } from "@/lib/utils/credit-taxes"
 
 export function HeroSection() {
+  // Kredi hesaplama parametreleri
+  const principal = 100000
+  const rate = 2.99 // Aylık faiz oranı
+  const months = 36
+  const creditType = 'ihtiyac' // İhtiyaç kredisi
+  const rateType = 'monthly' // Aylık faiz
+
+  // Aylık taksit hesaplama (KKDF ve BSMV dahil)
+  const monthlyPayment = useMemo(() => {
+    const annualRate = convertInterestRate(rate, 'monthly', 'annual') // Aylıktan yıllığa çevir
+    let monthlyRate = annualRate / 100 / 12
+    
+    // İhtiyaç kredisi için KKDF %15, BSMV %15
+    const rates = { kkdf: 0.15, bsmv: 0.15 }
+    const effectiveMonthlyRate = monthlyRate * (1 + rates.kkdf + rates.bsmv)
+    
+    // PMT formülü: P * (r * (1+r)^n) / ((1+r)^n - 1)
+    const payment = principal * (effectiveMonthlyRate * Math.pow(1 + effectiveMonthlyRate, months)) / (Math.pow(1 + effectiveMonthlyRate, months) - 1)
+    
+    return payment
+  }, [principal, rate, months])
+
+  // Detaylı hesaplama sayfasına git (query parametreleri ile)
+  const detailUrl = `/araclar/odeme-plani-ciktisi?principal=${principal}&rate=${rate}&months=${months}&creditType=${creditType}&rateType=${rateType}`
+
   return (
     <section className="container mx-auto px-4 py-16 md:py-24">
       <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
@@ -22,7 +51,7 @@ export function HeroSection() {
           </h1>
 
           <p className="text-lg text-(--color-foreground-muted) md:text-xl">
-            Kredi hesaplama, döviz takibi, banka karşılaştırma ve daha fazlası. Finansal hedeflerinize ulaşmak için
+            Kredi hesaplama, döviz takibi ve daha fazlası. Finansal hedeflerinize ulaşmak için
             ihtiyacınız olan tüm araçlar tek platformda.
           </p>
 
@@ -45,7 +74,7 @@ export function HeroSection() {
           {/* İstatistikler */}
           <div className="grid grid-cols-3 gap-4 pt-8">
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-(--color-primary)">15+</div>
+              <div className="text-2xl font-bold text-(--color-primary)">25+</div>
               <div className="text-sm text-(--color-foreground-muted)">Finans Aracı</div>
             </div>
             <div className="space-y-1">
@@ -59,48 +88,61 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Sağ Taraf - Görsel */}
+        {/* Sağ Taraf - Kredi Hesaplama Kartı */}
         <div className="relative lg:order-last">
           <div className="relative overflow-hidden rounded-2xl border bg-(--color-card) p-6 shadow-2xl">
-            {/* Mini Dashboard Preview */}
+            {/* Kredi Hesaplama Preview */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Hızlı Hesaplama</h3>
-                <Calculator className="h-5 w-5 text-(--color-primary)" />
+                <h3 className="text-lg font-semibold">Kredi Hesaplama</h3>
+                <CreditCard className="h-5 w-5 text-(--color-primary)" />
               </div>
 
               <div className="space-y-3">
                 <div className="rounded-lg border bg-(--color-surface) p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-(--color-foreground-muted)">Kredi Tutarı</span>
-                    <span className="font-semibold">₺250.000</span>
+                    <span className="font-semibold">₺{principal.toLocaleString('tr-TR')}</span>
                   </div>
                 </div>
 
                 <div className="rounded-lg border bg-(--color-surface) p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-(--color-foreground-muted)">Vade</span>
-                    <span className="font-semibold">36 Ay</span>
+                    <span className="font-semibold">{months} Ay</span>
                   </div>
                 </div>
 
                 <div className="rounded-lg border bg-(--color-surface) p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-(--color-foreground-muted)">Faiz Oranı</span>
-                    <span className="font-semibold text-(--color-primary)">%2.99</span>
+                    <span className="text-sm text-(--color-foreground-muted)">Aylık Faiz Oranı</span>
+                    <span className="font-semibold text-(--color-primary)">%{rate.toFixed(2)}</span>
                   </div>
                 </div>
 
-                <div className="rounded-lg bg-(--color-primary) p-4 text-white">
+                <div className="rounded-lg border bg-(--color-surface) p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Aylık Taksit</span>
-                    <span className="text-xl font-bold">₺8.456</span>
+                    <span className="text-sm text-(--color-foreground-muted)">Kredi Türü</span>
+                    <span className="font-semibold text-sm">İhtiyaç Kredisi</span>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-gradient-to-r from-(--color-primary) to-(--color-primary)/90 p-4 text-white shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Aylık Taksit</span>
+                    <span className="text-xl font-bold">₺{monthlyPayment.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="mt-1 text-xs opacity-90">
+                    KKDF ve BSMV dahil
                   </div>
                 </div>
               </div>
 
-              <Button className="w-full" size="lg">
-                Detaylı Hesapla
+              <Button asChild className="w-full" size="lg">
+                <Link href={detailUrl}>
+                  Detaylı Hesapla
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
             </div>
 

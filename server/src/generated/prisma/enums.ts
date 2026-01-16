@@ -93,7 +93,8 @@ export type SyncFrequency = (typeof SyncFrequency)[keyof typeof SyncFrequency]
 export const IpoStatus = {
   UPCOMING: 'UPCOMING',
   COMPLETED: 'COMPLETED',
-  DRAFT: 'DRAFT'
+  DRAFT: 'DRAFT',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type IpoStatus = (typeof IpoStatus)[keyof typeof IpoStatus]
