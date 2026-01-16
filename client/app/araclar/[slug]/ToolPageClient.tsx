@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Star } from 'lucide-react'
+import { Star, Info, Calculator } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AdSlotDisplay } from '@/components/tools/AdSlotDisplay'
@@ -10,6 +10,7 @@ import { getToolComponent } from '@/components/tools/registry'
 import { favoriteToolsApi } from '@/lib/favorite-tools-api'
 import { useAuth } from '@/contexts/auth-context'
 import { toast } from 'sonner'
+import { toolDescriptions } from '@/lib/tools/tool-descriptions'
 
 interface ToolPageClientProps {
   tool: Tool
@@ -144,17 +145,13 @@ export function ToolPageClient({
             )}
           </div>
 
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <ToolComponent
-                config={tool.config}
-                toolId={tool.id}
-                data={toolData}
-                dataSourceType={tool.dataSourceType}
-              />
-            </CardContent>
-          </Card>
-
+          <ToolComponent
+            config={tool.config}
+            toolId={tool.id}
+            data={toolData}
+            dataSourceType={tool.dataSourceType}
+          />
+          
           {/* INLINE Ad Slots (component içinde) */}
           {adSlotsByPosition.INLINE.length > 0 && (
             <div className="my-6">
@@ -170,6 +167,59 @@ export function ToolPageClient({
               {adSlotsByPosition.MIDDLE.map((slot) => (
                 <AdSlotDisplay key={slot.id} slot={slot} />
               ))}
+            </div>
+          )}
+
+          {/* Açıklama Bölümü */}
+          {toolDescriptions[tool.slug] && (
+            <div className="mt-8 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Info className="h-5 w-5" />
+                    Bu Araç Nedir?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-(--color-foreground-muted) leading-relaxed">
+                    {toolDescriptions[tool.slug].whatIs}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5" />
+                    Nasıl Hesaplanır?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-(--color-foreground-muted) leading-relaxed mb-4">
+                    {toolDescriptions[tool.slug].howItWorks}
+                  </p>
+                  
+                  {toolDescriptions[tool.slug].formula && (
+                    <div className="mt-4 rounded-lg bg-muted p-4">
+                      <h4 className="mb-2 font-semibold">Formül:</h4>
+                      <pre className="whitespace-pre-wrap text-sm text-(--color-foreground-muted) font-mono">
+                        {toolDescriptions[tool.slug].formula}
+                      </pre>
+                    </div>
+                  )}
+
+                  {toolDescriptions[tool.slug].examples && toolDescriptions[tool.slug].examples!.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="mb-2 font-semibold">Örnek Hesaplama:</h4>
+                      <ul className="list-inside list-disc space-y-1 text-sm text-(--color-foreground-muted)">
+                        {toolDescriptions[tool.slug].examples!.map((example, idx) => (
+                          <li key={idx}>{example}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           )}
         </main>

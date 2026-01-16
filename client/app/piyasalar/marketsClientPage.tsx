@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { favoriteMarketsApi } from "@/lib/favorite-markets-api"
 import { useAuth } from "@/contexts/auth-context"
 import { Star } from "lucide-react"
+import { formatCryptoPrice } from "@/lib/utils"
 
 export default function MarketsClientPage() {
   const searchParams = useSearchParams()
@@ -442,17 +443,17 @@ export default function MarketsClientPage() {
 
   const formatPrice = (item: MarketDataItem) => {
     if (item.category === 'crypto') {
-      return `$${item.price.toLocaleString('en-US', { maximumFractionDigits: 12 })}`
+      return `$${formatCryptoPrice(item.price)}`
     } else if (item.category === 'commodity') {
       if (item.symbol === 'ONS_ALTIN') {
-        return `$${item.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+        return `$${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       }
-      return `₺${item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}`
+      return `₺${item.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     } else if (item.category === 'stock') {
-      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+      return item.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     } else {
       // Forex
-      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 4 })
+      return item.price.toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })
     }
   }
 

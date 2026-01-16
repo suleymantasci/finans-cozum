@@ -13,16 +13,65 @@ export interface ToolComponentProps {
 
 // Component registry - Yeni araçlar buraya eklenir
 const toolComponents: Record<string, () => Promise<{ default: ComponentType<ToolComponentProps> }>> = {
-  'LoanCalculator': () => import('./LoanCalculator'),
-  'CurrencyConverter': () => import('./CurrencyConverter'),
-  'DepositCalculator': () => import('./DepositCalculator'),
-  'VadeCalculator': () => import('./VadeCalculator'),
-  'CreditCardDebtCalculator': () => import('./CreditCardDebtCalculator'),
-  'InterestCalculator': () => import('./InterestCalculator'),
-  // Mevcut component'ler (backward compatibility)
-  'loan-calculator': () => import('./LoanCalculator'),
-  'currency-converter': () => import('./CurrencyConverter'),
-  // Yeni araçlar buraya eklenir
+  // Faiz Hesaplamaları
+  'SimpleInterestCalculator': () => import('./SimpleInterestCalculator'),
+  'basit-faiz': () => import('./SimpleInterestCalculator'),
+  'CompoundInterestCalculator': () => import('./CompoundInterestCalculator'),
+  'bilesik-faiz': () => import('./CompoundInterestCalculator'),
+  'InterestRateConverter': () => import('./InterestRateConverter'),
+  'faiz-orani-donusturme': () => import('./InterestRateConverter'),
+  'TotalInterestCostCalculator': () => import('./TotalInterestCostCalculator'),
+  'toplam-faiz-maliyeti': () => import('./TotalInterestCostCalculator'),
+
+  // Yatırım Hesaplamaları
+  'AnnualReturnCalculator': () => import('./AnnualReturnCalculator'),
+  'yillik-getiri': () => import('./AnnualReturnCalculator'),
+  'NPVCalculator': () => import('./NPVCalculator'),
+  'npv': () => import('./NPVCalculator'),
+  'IRRCalculator': () => import('./IRRCalculator'),
+  'irr': () => import('./IRRCalculator'),
+  'ROICalculator': () => import('./ROICalculator'),
+  'roi': () => import('./ROICalculator'),
+  'InvestmentProfitabilityCalculator': () => import('./InvestmentProfitabilityCalculator'),
+  'yatirim-karlilik': () => import('./InvestmentProfitabilityCalculator'),
+  'InflationCalculator': () => import('./InflationCalculator'),
+  'enflasyon-etkisi': () => import('./InflationCalculator'),
+  'GrowthRateCalculator': () => import('./GrowthRateCalculator'),
+  'yatirim-buyume-orani': () => import('./GrowthRateCalculator'),
+  'AverageReturnCalculator': () => import('./AverageReturnCalculator'),
+  'ortalama-getiri': () => import('./AverageReturnCalculator'),
+
+  // Kredi Hesaplamaları
+  'MonthlyPaymentCalculator': () => import('./MonthlyPaymentCalculator'),
+  'aylik-taksit': () => import('./MonthlyPaymentCalculator'),
+  'AmortizationTableCalculator': () => import('./AmortizationTableCalculator'),
+  'amortisman-tablosu': () => import('./AmortizationTableCalculator'),
+  'PaymentScheduleCalculator': () => import('./PaymentScheduleCalculator'),
+  'odeme-plani-ciktisi': () => import('./PaymentScheduleCalculator'),
+
+  // İşletme Hesaplamaları
+  'BreakEvenCalculator': () => import('./BreakEvenCalculator'),
+  'break-even': () => import('./BreakEvenCalculator'),
+  'MarginCalculator': () => import('./MarginCalculator'),
+  'marj-kar-orani': () => import('./MarginCalculator'),
+  'ProfitLossCalculator': () => import('./ProfitLossCalculator'),
+  'kar-zarar': () => import('./ProfitLossCalculator'),
+  'PerformanceCoefficientCalculator': () => import('./PerformanceCoefficientCalculator'),
+  'verimlilik-katsayisi': () => import('./PerformanceCoefficientCalculator'),
+  'WorkingCapitalCalculator': () => import('./WorkingCapitalCalculator'),
+  'calisma-sermayesi': () => import('./WorkingCapitalCalculator'),
+  'CapitalRequirementCalculator': () => import('./CapitalRequirementCalculator'),
+  'sermaye-ihtiyaci': () => import('./CapitalRequirementCalculator'),
+  'CashFlowAnalyzerCalculator': () => import('./CashFlowAnalyzerCalculator'),
+  'nakit-akisi-analizi': () => import('./CashFlowAnalyzerCalculator'),
+
+  // Bütçe Hesaplamaları
+  'BudgetPlannerCalculator': () => import('./BudgetPlannerCalculator'),
+  'basit-butce': () => import('./BudgetPlannerCalculator'),
+  'IncomeExpenseBalanceCalculator': () => import('./IncomeExpenseBalanceCalculator'),
+  'gelir-gider-dengesi': () => import('./IncomeExpenseBalanceCalculator'),
+  'AnnualSavingsGoalCalculator': () => import('./AnnualSavingsGoalCalculator'),
+  'yillik-tasarruf-hedefi': () => import('./AnnualSavingsGoalCalculator'),
 };
 
 // Dynamic component loader
@@ -50,4 +99,3 @@ export function getToolComponent(componentName: string): ComponentType<ToolCompo
 export function getAvailableComponents(): string[] {
   return Object.keys(toolComponents);
 }
-

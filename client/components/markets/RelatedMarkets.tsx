@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, ArrowRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { marketApi, MarketDataItem } from "@/lib/market-api"
 import { Loader2 } from "lucide-react"
+import { formatCryptoPrice } from "@/lib/utils"
 
 interface RelatedMarketsProps {
   currentSymbol: string
@@ -90,16 +91,16 @@ export function RelatedMarkets({ currentSymbol, category }: RelatedMarketsProps)
 
   const formatPrice = (item: MarketDataItem) => {
     if (item.category === 'crypto') {
-      return `$${item.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+      return `$${formatCryptoPrice(item.price)}`
     } else if (item.category === 'commodity') {
       if (item.symbol === 'ONS_ALTIN' || item.symbol === 'ONS_GUMUS') {
-        return `$${item.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+        return `$${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       }
-      return `₺${item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}`
+      return `₺${item.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     } else if (item.category === 'stock') {
-      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+      return item.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     } else {
-      return item.price.toLocaleString('tr-TR', { maximumFractionDigits: 4 })
+      return item.price.toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })
     }
   }
 
@@ -137,22 +138,22 @@ export function RelatedMarkets({ currentSymbol, category }: RelatedMarketsProps)
           <Link
             key={item.symbol}
             href={`/piyasalar/${getSymbolSlug(item)}`}
-            className="block p-3 rounded-lg border hover:bg-accent transition-colors group"
+            className="block p-3 rounded-lg border hover:bg-primary hover:text-primary-foreground transition-colors group cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold text-sm">{item.symbol}</span>
                   {item.name && (
-                    <span className="text-xs text-muted-foreground truncate">{item.name}</span>
+                    <span className="text-xs text-muted-foreground group-hover:text-primary-foreground/80 truncate transition-colors">{item.name}</span>
                   )}
                 </div>
                 <div className="text-lg font-bold">{formatPrice(item)}</div>
               </div>
               <div className="flex items-center gap-2 ml-4">
                 <span
-                  className={`flex items-center gap-1 text-sm font-semibold ${
-                    item.isUp ? "text-green-600" : "text-red-600"
+                  className={`flex items-center gap-1 text-sm font-semibold transition-colors ${
+                    item.isUp ? "text-green-600 group-hover:text-primary-foreground" : "text-red-600 group-hover:text-primary-foreground"
                   }`}
                 >
                   {item.isUp ? (
@@ -162,7 +163,7 @@ export function RelatedMarkets({ currentSymbol, category }: RelatedMarketsProps)
                   )}
                   {formatChange(item.changePercent)}
                 </span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary-foreground transition-colors" />
               </div>
             </div>
           </Link>

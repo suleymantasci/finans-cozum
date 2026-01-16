@@ -12,6 +12,7 @@ import { RelatedMarkets } from "@/components/markets/RelatedMarkets"
 import { favoriteMarketsApi } from "@/lib/favorite-markets-api"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import { formatMarketPrice, formatCryptoPrice } from "@/lib/utils"
 
 interface MarketDetailClientProps {
   symbol: string
@@ -209,7 +210,7 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                 <div className="flex items-end gap-4 mb-6">
                   <div className="text-5xl md:text-6xl font-bold">
                     {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
-                    {marketData.currentPrice.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                    {formatMarketPrice(marketData.currentPrice, marketData.type, marketData.symbol)}
                   </div>
                   <div className="flex items-center gap-2 pb-2">
                     {marketData.changePercent > 0 ? (
@@ -223,7 +224,10 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                       }`}
                     >
                       {marketData.change > 0 ? "+" : ""}
-                      {marketData.change.toFixed(marketData.type === 'Döviz' ? 4 : 2)} ({marketData.changePercent > 0 ? "+" : ""}
+                      {marketData.type === 'Kripto Para' 
+                        ? formatCryptoPrice(Math.abs(marketData.change))
+                        : marketData.change.toFixed(marketData.type === 'Döviz' ? 4 : 2)
+                      } ({marketData.changePercent > 0 ? "+" : ""}
                       {marketData.changePercent.toFixed(2)}%)
                     </span>
                   </div>
@@ -237,28 +241,28 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                 <div className="text-sm text-muted-foreground mb-2">Açılış</div>
                 <div className="text-lg font-semibold">
                   {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
-                  {marketData.open.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                  {formatMarketPrice(marketData.open, marketData.type, marketData.symbol)}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground mb-2">Yüksek</div>
                 <div className="text-lg font-semibold text-success">
                   {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
-                  {marketData.high.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                  {formatMarketPrice(marketData.high, marketData.type, marketData.symbol)}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground mb-2">Düşük</div>
                 <div className="text-lg font-semibold text-destructive">
                   {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
-                  {marketData.low.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                  {formatMarketPrice(marketData.low, marketData.type, marketData.symbol)}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground mb-2">Önceki Kapanış</div>
                 <div className="text-lg font-semibold">
                   {marketData.type === 'Kripto Para' ? '$' : marketData.type === 'Emtia' && marketData.symbol === 'ONS_ALTIN' ? '$' : '₺'}
-                  {marketData.prevClose.toLocaleString('tr-TR', { maximumFractionDigits: marketData.type === 'Döviz' ? 4 : 2 })}
+                  {formatMarketPrice(marketData.prevClose, marketData.type, marketData.symbol)}
                 </div>
               </div>
             </div>
@@ -308,7 +312,7 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                       <div className="text-sm text-muted-foreground">52 Hafta Yüksek</div>
                       <div className="text-lg font-semibold text-success">
                         {marketData.type === 'Kripto Para' ? '$' : '₺'}
-                        {marketData.high52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}
+                        {formatMarketPrice(marketData.high52w, marketData.type, marketData.symbol)}
                       </div>
                     </div>
                   )}
@@ -317,7 +321,7 @@ export default function MarketDetailClient({ symbol }: MarketDetailClientProps) 
                       <div className="text-sm text-muted-foreground">52 Hafta Düşük</div>
                       <div className="text-lg font-semibold text-destructive">
                         {marketData.type === 'Kripto Para' ? '$' : '₺'}
-                        {marketData.low52w.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}
+                        {formatMarketPrice(marketData.low52w, marketData.type, marketData.symbol)}
                       </div>
                     </div>
                   )}

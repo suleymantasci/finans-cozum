@@ -342,4 +342,36 @@ export class IpoService {
         data: updateData
     });
   }
+
+  /**
+   * Check if listing exists by BIST code or detail URL
+   */
+  async findListingByBistCodeOrUrl(bistCode: string, detailUrl: string) {
+    return this.prisma.ipoListing.findFirst({
+      where: {
+        OR: [
+          { bistCode },
+          { detailUrl },
+        ],
+      },
+      include: {
+        detail: true,
+      },
+    });
+  }
+
+  /**
+   * Check if detail was modified by comparing lastModified
+   */
+  async hasDetailChanged(listingId: string, newLastModified: string | null): Promise<boolean> {
+    const existingDetail = await this.prisma.ipoDetail.findUnique({
+      where: { listingId },
+      select: { lastModified: true },
+    });
+
+    if (!existingDetail) return true; // No detail exists, should update
+    if (!newLastModified) return false; // No new lastModified info, assume unchanged
+
+    return existingDetail.lastModified !== newLastModified;
+  }
 }

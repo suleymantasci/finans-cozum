@@ -153,10 +153,13 @@ export class IpoScraperService {
   }
 
   /**
-   * Daily sync - only checks for new and updated listings
+   * Sync - yeni verileri ekler, mevcut kayıtları revizyon kontrolü yapar
+   * 1. Tüm sayfaları yükler ve tüm listingleri scrape eder
+   * 2. isDraft olanların hepsini işler (sıralamadan bağımsız, hepsi kontrol edilir)
+   * 3. isDraft olmayanlardan ilk 50'yi alır ve hepsinin hem liste hem detayını günceller
    */
   async scrapeDailyUpdates(): Promise<void> {
-    this.logger.log('Starting daily IPO sync...');
+    this.logger.log('Starting IPO sync - tüm listingler kontrol ediliyor...');
     let browser: Browser | null = null;
 
     try {
@@ -174,20 +177,36 @@ export class IpoScraperService {
         timeout: 60000,
       });
 
-      // Only load first page for daily sync
-      const listings = await this.scrapeListingsFromPage(page);
+      // Tüm sayfaları yükle (isDraft olanlar tüm sayfalarda olabilir)
+      await this.loadAllListings(page);
 
-      // Filter for new or updated listings
-      const newListings = listings.filter((l) => l.isNew);
-      const updatedListings = listings.filter((l) => l.hasResults);
+      // Tüm listingleri scrape et
+      const allListings = await this.scrapeListingsFromPage(page);
+      this.logger.log(`Toplam ${allListings.length} listing bulundu`);
 
-      this.logger.log(`Found ${newListings.length} new listings and ${updatedListings.length} updated listings`);
-
-      // Process new and updated listings
-      const toProcess = [...newListings, ...updatedListings];
+      // isDraft olanları ve olmayanları ayır
+      const draftListings = allListings.filter(l => l.isDraft);
+      const nonDraftListings = allListings.filter(l => !l.isDraft);
       
-      for (const listing of toProcess) {
+      // isDraft olmayanlardan ilk 50'yi al (scrapeListingsFromPage'in döndürdüğü sıraya göre)
+      const topNonDraftListings = nonDraftListings.slice(0, 50);
+      
+      this.logger.log(`${draftListings.length} taslak listing bulundu (hepsi işlenecek)`);
+      this.logger.log(`${nonDraftListings.length} aktif listing bulundu, ilk 50'si işlenecek`);
+
+      let newCount = 0;
+      let updatedCount = 0;
+      let skippedCount = 0;
+
+      // Önce isDraft olanların hepsini işle
+      for (const listing of draftListings) {
         try {
+          // Mevcut kaydı kontrol et (BIST code veya detail URL ile)
+          const existingListing = await this.ipoService.findListingByBistCodeOrUrl(
+            listing.bistCode,
+            listing.detailUrl
+          );
+
           // Determine status based on user rules
           let status: IpoStatus = IpoStatus.UPCOMING;
           
@@ -200,43 +219,153 @@ export class IpoScraperService {
               status = listing.hasResults ? IpoStatus.COMPLETED : IpoStatus.UPCOMING;
           }
 
-          // Download logo if exists and not already local
-          let localLogoUrl = listing.logoUrl;
-          if (listing.logoUrl && listing.logoUrl.startsWith('http')) {
-             localLogoUrl = await this.downloadImage(listing.logoUrl, listing.bistCode);
-          }
+          // Eğer kayıt yoksa, yeni kayıt ekle
+          if (!existingListing) {
+            this.logger.log(`Yeni listing bulundu: ${listing.companyName} (${listing.bistCode})`);
+            
+            // Download logo if exists
+            let localLogoUrl = null;
+            if (listing.logoUrl) {
+              localLogoUrl = await this.downloadImage(listing.logoUrl, listing.bistCode);
+            }
 
-          const savedListing = await this.ipoService.createOrUpdateListing({
-            ...listing,
-            logoUrl: localLogoUrl,
-            status,
-          });
+            const savedListing = await this.ipoService.createOrUpdateListing({
+              ...listing,
+              logoUrl: localLogoUrl,
+              status,
+            });
 
-          const realBistCode = await this.scrapeListingDetail(savedListing.id, listing.detailUrl);
+            // Detail sayfasını scrape et
+            const realBistCode = await this.scrapeListingDetail(savedListing.id, listing.detailUrl);
 
-          if (realBistCode && listing.bistCode.startsWith('TEMP-') && realBistCode !== listing.bistCode) {
-              this.logger.log(`Updating TEMP BIST code ${listing.bistCode} to ${realBistCode}`);
+            if (realBistCode && listing.bistCode.startsWith('TEMP-') && realBistCode !== listing.bistCode) {
+              this.logger.log(`TEMP BIST kodu güncelleniyor: ${listing.bistCode} -> ${realBistCode}`);
               
               let newLogoUrl = undefined;
               if (localLogoUrl) {
-                  const renamedUrl = await this.renameImage(localLogoUrl, realBistCode);
-                  if (renamedUrl) {
-                      newLogoUrl = renamedUrl;
-                  }
+                const renamedUrl = await this.renameImage(localLogoUrl, realBistCode);
+                if (renamedUrl) {
+                  newLogoUrl = renamedUrl;
+                }
               }
               
               await this.ipoService.updateListingBistCode(savedListing.id, realBistCode, newLogoUrl);
-          }
+            }
 
-          this.logger.log(`Updated ${listing.bistCode} - ${listing.companyName}`);
+            newCount++;
+          } else {
+            // Kayıt varsa, hem liste hem detay bilgilerini güncelle
+            this.logger.log(`Mevcut listing güncelleniyor: ${existingListing.companyName} (${existingListing.bistCode})`);
+            
+            // Logo kontrolü - eğer yeni logo varsa ve lokal değilse indir
+            let localLogoUrl = existingListing.logoUrl;
+            if (listing.logoUrl && listing.logoUrl.startsWith('http') && !existingListing.logoUrl) {
+              localLogoUrl = await this.downloadImage(listing.logoUrl, existingListing.bistCode);
+            }
+
+            // Listing bilgilerini her zaman güncelle (isDraft için koşulsuz güncelleme)
+            await this.ipoService.createOrUpdateListing({
+              ...listing,
+              logoUrl: localLogoUrl || existingListing.logoUrl,
+              status,
+            });
+
+            // Detail sayfasını her zaman scrape et ve güncelle (revizyon kontrolü yapılacak)
+            const detailLastModified = await this.scrapeListingDetailForRevision(
+              existingListing.id,
+              listing.detailUrl
+            );
+
+            updatedCount++;
+          }
         } catch (error) {
-          this.logger.error(`Error updating ${listing.bistCode}: ${error.message}`);
+          this.logger.error(`Error processing draft listing ${listing.companyName} (${listing.bistCode}): ${error.message}`);
         }
       }
 
-      this.logger.log('Daily IPO sync completed successfully');
+      // Şimdi isDraft olmayan ilk 50'yi işle (koşulsuz liste ve detay güncellemesi)
+      for (const listing of topNonDraftListings) {
+        try {
+          // Mevcut kaydı kontrol et (BIST code veya detail URL ile)
+          const existingListing = await this.ipoService.findListingByBistCodeOrUrl(
+            listing.bistCode,
+            listing.detailUrl
+          );
+
+          // Determine status based on user rules
+          let status: IpoStatus = IpoStatus.UPCOMING;
+          if (!listing.isNew) {
+            listing.hasResults = true;
+          }
+          status = listing.hasResults ? IpoStatus.COMPLETED : IpoStatus.UPCOMING;
+
+          // Eğer kayıt yoksa, yeni kayıt ekle
+          if (!existingListing) {
+            this.logger.log(`Yeni listing bulundu: ${listing.companyName} (${listing.bistCode})`);
+            
+            // Download logo if exists
+            let localLogoUrl = null;
+            if (listing.logoUrl) {
+              localLogoUrl = await this.downloadImage(listing.logoUrl, listing.bistCode);
+            }
+
+            const savedListing = await this.ipoService.createOrUpdateListing({
+              ...listing,
+              logoUrl: localLogoUrl,
+              status,
+            });
+
+            // Detail sayfasını scrape et
+            const realBistCode = await this.scrapeListingDetail(savedListing.id, listing.detailUrl);
+
+            if (realBistCode && listing.bistCode.startsWith('TEMP-') && realBistCode !== listing.bistCode) {
+              this.logger.log(`TEMP BIST kodu güncelleniyor: ${listing.bistCode} -> ${realBistCode}`);
+              
+              let newLogoUrl = undefined;
+              if (localLogoUrl) {
+                const renamedUrl = await this.renameImage(localLogoUrl, realBistCode);
+                if (renamedUrl) {
+                  newLogoUrl = renamedUrl;
+                }
+              }
+              
+              await this.ipoService.updateListingBistCode(savedListing.id, realBistCode, newLogoUrl);
+            }
+
+            newCount++;
+          } else {
+            // Kayıt varsa, koşulsuz olarak hem liste hem detay bilgilerini güncelle
+            this.logger.log(`Aktif listing güncelleniyor: ${existingListing.companyName} (${existingListing.bistCode})`);
+            
+            // Logo kontrolü
+            let localLogoUrl = existingListing.logoUrl;
+            if (listing.logoUrl && listing.logoUrl.startsWith('http') && !existingListing.logoUrl) {
+              localLogoUrl = await this.downloadImage(listing.logoUrl, existingListing.bistCode);
+            }
+
+            // Listing bilgilerini her zaman güncelle (koşulsuz)
+            await this.ipoService.createOrUpdateListing({
+              ...listing,
+              logoUrl: localLogoUrl || existingListing.logoUrl,
+              status,
+            });
+
+            // Detail sayfasını her zaman scrape et ve güncelle (revizyon kontrolü yapılacak)
+            await this.scrapeListingDetailForRevision(
+              existingListing.id,
+              listing.detailUrl
+            );
+
+            updatedCount++;
+          }
+        } catch (error) {
+          this.logger.error(`Error processing active listing ${listing.companyName} (${listing.bistCode}): ${error.message}`);
+        }
+      }
+
+      this.logger.log(`Sync tamamlandı: ${newCount} yeni, ${updatedCount} güncellenmiş`);
     } catch (error) {
-      this.logger.error(`Daily sync failed: ${error.message}`, error.stack);
+      this.logger.error(`Sync failed: ${error.message}`, error.stack);
       throw error;
     } finally {
       if (browser) {
@@ -358,6 +487,224 @@ export class IpoScraperService {
 
       return listings;
     });
+  }
+
+  /**
+   * Scrape detail page for revision check - returns lastModified if available
+   */
+  private async scrapeListingDetailForRevision(listingId: string, detailUrl: string): Promise<string | null> {
+    let browser: Browser | null = null;
+
+    try {
+      const { browser: createdBrowser, context: createdContext, page: createdPage } = 
+        await this.scrapingService.createStealthBrowser(this.serviceName);
+      
+      browser = createdBrowser;
+      const page = createdPage;
+
+      await this.scrapingService.navigateWithStealth(page, detailUrl, {
+        waitUntil: 'networkidle',
+        timeout: 60000,
+      });
+
+      // Extract lastModified and check if detail changed
+      const detailFullData = await page.evaluate(() => {
+        const data: any = {};
+        let extractedBistCode = null;
+
+        // Try to find BIST code
+        const headerBistEl = document.querySelector('.il-bist-kod');
+        if (headerBistEl) {
+          extractedBistCode = headerBistEl.textContent?.trim();
+        }
+
+        // Extract from sp-table
+        const table = document.querySelector('.sp-table');
+        if (table) {
+          const rows = table.querySelectorAll('tr');
+          rows.forEach((row) => {
+            const label = row.querySelector('em')?.textContent?.trim();
+            const valueCell = row.querySelectorAll('td')[1];
+
+            if (label && valueCell) {
+              if (label.includes('Halka Arz Tarihi')) {
+                data.ipoDate = valueCell.querySelector('time')?.textContent?.trim() || valueCell.textContent?.trim()?.replace(':', '')?.trim();
+                data.ipoDateTimeRange = valueCell.querySelector('small')?.textContent?.trim();
+              } else if (label.includes('Halka Arz Fiyatı')) {
+                data.ipoPrice = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Dağıtım Yöntemi')) {
+                data.distributionMethod = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Fiili Dolaşımdaki Pay') && label.includes(':')) {
+                data.actualCirculation = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Fiili Dolaşımdaki Pay Oranı')) {
+                data.actualCirculationPct = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Pay') && !label.includes('Fiili Dolaşımdaki')) {
+                if (!label.includes('Oranı') && !label.includes('Oran')) {
+                  data.shareAmount = valueCell.querySelector('strong')?.textContent?.trim();
+                }
+              } else if (label.includes('Aracı Kurum')) {
+                data.intermediary = valueCell.querySelector('strong')?.textContent?.trim();
+                const consortium: string[] = [];
+                valueCell.querySelectorAll('.konsorsym li').forEach((li) => {
+                  consortium.push(li.textContent?.trim() || '');
+                });
+                data.consortium = consortium;
+              } else if (label.includes('Bist İlk İşlem Tarihi')) {
+                data.firstTradeDate = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Pazar')) {
+                data.market = valueCell.querySelector('strong')?.textContent?.trim();
+              } else if (label.includes('Bist Kodu')) { 
+                const tableBist = valueCell.querySelector('strong')?.textContent?.trim();
+                if (tableBist && !extractedBistCode) extractedBistCode = tableBist;
+              }
+            }
+          });
+        }
+
+        // Extract summary info
+        const summaryEl = document.querySelector('.sp-arz-extra');
+        if (summaryEl) {
+          const summaryItems: any[] = [];
+          summaryEl.querySelectorAll('li').forEach((li) => {
+            const title = li.querySelector('h5')?.textContent?.trim();
+            let contentHtml = li.querySelector('p')?.innerHTML || '';
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = contentHtml;
+            tempDiv.querySelectorAll('a').forEach(a => {
+              a.replaceWith(a.textContent || '');
+            });
+            const content = tempDiv.innerHTML.trim();
+
+            const tableData: any = {};
+            const table = li.querySelector('table');
+            if (table) {
+              const headers: string[] = [];
+              table.querySelectorAll('th').forEach((th) => {
+                headers.push(th.textContent?.trim() || '');
+              });
+
+              const rows: any[] = [];
+              table.querySelectorAll('tbody tr').forEach((tr) => {
+                const cells: string[] = [];
+                tr.querySelectorAll('td').forEach((td) => {
+                  cells.push(td.textContent?.trim() || '');
+                });
+                if (cells.length > 0) {
+                  rows.push(cells);
+                }
+              });
+
+              tableData.headers = headers;
+              tableData.rows = rows;
+            }
+
+            if (title || content) {
+              summaryItems.push({
+                title,
+                content,
+                table: Object.keys(tableData).length > 0 ? tableData : null,
+              });
+            }
+          });
+          data.summaryInfo = summaryItems;
+        }
+
+        // Extract company info
+        const companyEl = document.querySelector('.sirket-hakkinda .sh-content');
+        if (companyEl) {
+          data.companyDescription = companyEl.querySelector('p')?.textContent?.trim();
+          data.city = companyEl.querySelector('.shc-city')?.textContent?.replace('Şehir :', '')?.trim();
+          data.foundedDate = companyEl.querySelector('.shc-founded')?.textContent?.replace('Kuruluş Tarihi :', '')?.trim();
+        }
+
+        // Extract attachments
+        const attachmentsEl = document.querySelector('.ekler .ek-content');
+        if (attachmentsEl) {
+          const attachments: any[] = [];
+          attachmentsEl.querySelectorAll('a').forEach((a) => {
+            attachments.push({
+              title: a.textContent?.trim(),
+              url: a.getAttribute('href'),
+            });
+          });
+          data.attachments = attachments;
+        }
+
+        // Extract last modified
+        const lastModifiedEl = document.querySelector('.last-modified time');
+        if (lastModifiedEl) {
+          data.lastModified = lastModifiedEl.textContent?.trim();
+        }
+
+        return { data, extractedBistCode };
+      });
+
+      const { data: detailData, extractedBistCode } = detailFullData;
+
+      // Check if detail changed by comparing lastModified
+      const hasChanged = await this.ipoService.hasDetailChanged(listingId, detailData.lastModified || null);
+
+      if (hasChanged) {
+        // Detail değişmiş, tüm verileri güncelle
+        await this.ipoService.createOrUpdateDetail(listingId, detailData);
+
+        // Results'u da güncelle
+        const rawResultsData = await page.evaluate(() => {
+          const resultsTable = document.querySelector('.as-table');
+          if (!resultsTable) return null;
+
+          const rawRows: any[] = [];
+          resultsTable.querySelectorAll('tbody tr').forEach((tr) => {
+            const cells: string[] = [];
+            tr.querySelectorAll('td').forEach((td) => {
+              cells.push(td.textContent?.trim() || '');
+            });
+            if (cells.length > 0) {
+              rawRows.push(cells);
+            }
+          });
+
+          return rawRows.length > 0 ? rawRows : null;
+        });
+
+        if (rawResultsData) {
+          const resultsData = parseResultsTable(rawResultsData);
+          await this.ipoService.createOrUpdateResults(listingId, resultsData);
+        }
+
+        // Application places'ı güncelle
+        const applicationPlaces = await page.evaluate(() => {
+          const placesEl = document.querySelector('.spad-list');
+          if (!placesEl) return [];
+
+          const places: Array<{ name: string; isConsortium: boolean; isUnlisted: boolean }> = [];
+          placesEl.querySelectorAll('li').forEach((li) => {
+            const name = li.textContent?.trim() || '';
+            const isConsortium = li.classList.contains('konsorsiyum');
+            const isUnlisted = li.classList.contains('unlist');
+
+            if (name) {
+              places.push({ name, isConsortium, isUnlisted });
+            }
+          });
+
+          return places;
+        });
+
+        if (applicationPlaces.length > 0) {
+          await this.ipoService.createApplicationPlaces(listingId, applicationPlaces);
+        }
+      }
+
+      return detailData.lastModified || null;
+    } catch (error) {
+      this.logger.error(`Error checking revision for ${detailUrl}: ${error.message}`);
+      return null;
+    } finally {
+      if (browser) {
+        await browser.close();
+      }
+    }
   }
 
   /**

@@ -24,15 +24,6 @@ export class IpoController {
   }
 
   /**
-   * Get single IPO by BIST code
-   * GET /api/ipo/FRMPL
-   */
-  @Get(':bistCode')
-  async findOne(@Param('bistCode') bistCode: string) {
-    return this.ipoService.findByBistCode(bistCode);
-  }
-
-  /**
    * Trigger full scrape (admin only)
    * POST /api/ipo/scrape
    */
@@ -51,7 +42,7 @@ export class IpoController {
   }
 
   /**
-   * Trigger daily sync (admin only)
+   * Trigger sync - yeni verileri ekler, revizyonları günceller (admin only)
    * POST /api/ipo/sync
    */
   @Post('sync')
@@ -64,7 +55,17 @@ export class IpoController {
     });
 
     return {
-      message: 'Daily sync started in background',
+      message: 'Sync started in background - yeni veriler eklenecek, revizyonlar kontrol edilecek',
     };
+  }
+
+  /**
+   * Get single IPO by BIST code
+   * GET /api/ipo/FRMPL
+   * Bu route en sonda olmalı (dinamik route)
+   */
+  @Get(':bistCode')
+  async findOne(@Param('bistCode') bistCode: string) {
+    return this.ipoService.findByBistCode(bistCode);
   }
 }
