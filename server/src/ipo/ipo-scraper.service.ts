@@ -405,10 +405,76 @@ export class IpoScraperService {
           await this.ipoService.updateListingStatus(dbDraft.id, IpoStatus.CANCELLED);
           cancelledCount++;
         } else if (!inDraftList && inNonDraftList) {
-          // Taslak listede yok ama arz listesinde var -> arza geçmiş, status güncellenecek (zaten non-draft işleme aşamasında yapılacak)
-          this.logger.log(`Taslak kayıt arza geçmiş: ${dbDraft.companyName} (${dbDraft.bistCode}) - status non-draft işleme aşamasında güncellenecek`);
+          // Taslak listede yok ama arz listesinde var -> arza geçmiş
+          this.logger.log(`Taslak kayıt arza geçmiş: ${dbDraft.companyName} (${dbDraft.bistCode}) - status güncelleniyor`);
+          
+          // Aktif listede bu kaydı bul ve status'unu güncelle
+          const correspondingListing = nonDraftListings.find(
+            l => l.bistCode.toLowerCase() === bistCodeLower || l.detailUrl === dbDraft.detailUrl
+          );
+          
+          if (correspondingListing) {
+            // Status'u belirle (yeni kayıt mı, sonuçlanmış mı?)
+            let status: IpoStatus = IpoStatus.UPCOMING;
+            if (!correspondingListing.isNew) {
+              correspondingListing.hasResults = true;
+            }
+            status = correspondingListing.hasResults ? IpoStatus.COMPLETED : IpoStatus.UPCOMING;
+            
+            // Listing bilgilerini güncelle - MEVCUT taslak kaydını güncelle (yeni kayıt oluşturma!)
+            let localLogoUrl = dbDraft.logoUrl;
+            if (correspondingListing.logoUrl && correspondingListing.logoUrl.startsWith('http') && !dbDraft.logoUrl) {
+              localLogoUrl = await this.downloadImage(correspondingListing.logoUrl, dbDraft.bistCode);
+            }
+            
+            // Mevcut taslak kaydını doğrudan güncelle (ID ile)
+            // BIST code değiştiyse onu da güncelle
+            let newBistCode = correspondingListing.bistCode;
+            if (newBistCode !== dbDraft.bistCode && !newBistCode.startsWith('TEMP-')) {
+              // Gerçek BIST code bulundu, güncelle
+              this.logger.log(`Taslaktan arza geçerken BIST code güncelleniyor: ${dbDraft.bistCode} -> ${newBistCode}`);
+              
+              // Logo'yu yeniden adlandır (eğer gerekirse)
+              if (localLogoUrl && dbDraft.logoUrl && dbDraft.logoUrl.includes('/uploads/ipo/')) {
+                const renamedUrl = await this.renameImage(dbDraft.logoUrl, newBistCode);
+                if (renamedUrl) {
+                  localLogoUrl = renamedUrl;
+                }
+              }
+              
+              await this.ipoService.updateListingBistCode(dbDraft.id, newBistCode, localLogoUrl);
+            }
+            
+            // Listing bilgilerini güncelle (ID ile)
+            await this.prisma.ipoListing.update({
+              where: { id: dbDraft.id },
+              data: {
+                companyName: correspondingListing.companyName,
+                ipoDate: correspondingListing.ipoDate,
+                detailUrl: correspondingListing.detailUrl,
+                logoUrl: localLogoUrl || dbDraft.logoUrl,
+                isNew: correspondingListing.isNew,
+                hasResults: correspondingListing.hasResults,
+                status,
+              },
+            });
+            
+            // Detail sayfasını da güncelle (revizyon kontrolü ile)
+            await this.scrapeListingDetailForRevision(
+              dbDraft.id,
+              correspondingListing.detailUrl
+            );
+            
+            updatedCount++;
+            this.logger.log(`Taslaktan arza geçen kayıt güncellendi: ${dbDraft.companyName} (ID: ${dbDraft.id}) -> ${status}`);
+          } else {
+            // Eğer aktif listede bulunamazsa (çok nadir), sadece status'u güncelle
+            this.logger.warn(`Taslaktan arza geçen kayıt aktif listede bulunamadı, sadece status güncelleniyor: ${dbDraft.companyName}`);
+            await this.ipoService.updateListingStatus(dbDraft.id, IpoStatus.UPCOMING);
+            updatedCount++;
+          }
         }
-        // Eğer taslak listede varsa, zaten yukarıdaki loop'ta işlenecek
+        // Eğer taslak listede varsa, zaten yukarıdaki draft loop'unda işlenecek
       }
 
       // DB'deki aktif (non-draft) kayıtları kontrol et
@@ -454,16 +520,26 @@ export class IpoScraperService {
         if (listings.length > 1) {
           this.logger.warn(`Duplicate kayıt bulundu: ${companyName} (${listings.length} adet)`);
           
-          // Detayı olan kaydı tut, yoksa en yenisini tut
-          const withDetail = listings.find(l => l.detail);
-          const toKeep = withDetail || listings[0]; // En yeni olan (sıralama zaten desc)
+          // Öncelik sırası:
+          // 1. Taslak olmayan (UPCOMING/COMPLETED) ve detayı olan
+          // 2. Taslak olmayan ve detayı olmayan
+          // 3. Taslak ve detayı olan
+          // 4. Taslak ve detayı olmayan
+          
+          const nonDraftWithDetail = listings.find(l => l.status !== IpoStatus.DRAFT && l.detail);
+          const nonDraftWithoutDetail = listings.find(l => l.status !== IpoStatus.DRAFT && !l.detail);
+          const draftWithDetail = listings.find(l => l.status === IpoStatus.DRAFT && l.detail);
+          
+          const toKeep = nonDraftWithDetail || nonDraftWithoutDetail || draftWithDetail || listings[0];
           const toDelete = listings.filter(l => l.id !== toKeep.id);
           
           for (const listing of toDelete) {
-            this.logger.log(`Duplicate kayıt siliniyor: ${listing.companyName} (${listing.bistCode})`);
+            this.logger.log(`Duplicate kayıt siliniyor: ${listing.companyName} (${listing.bistCode}, Status: ${listing.status})`);
             await this.ipoService.deleteListing(listing.id);
             duplicateDeletedCount++;
           }
+          
+          this.logger.log(`Duplicate temizlendi: ${companyName} - Tutulan kayıt: ${toKeep.bistCode} (Status: ${toKeep.status})`);
         }
       }
 

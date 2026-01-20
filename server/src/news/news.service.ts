@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
@@ -22,8 +22,33 @@ export class NewsService {
       }
     );
 
+    // categoryId UUID formatında mı kontrol et, değilse ID veya slug olarak ara
+    let categoryId = createNewsDto.categoryId;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    
+    if (!uuidRegex.test(categoryId)) {
+      // Önce ID olarak dene (örn: cat-finans), sonra slug olarak dene (örn: finans)
+      let category = await this.prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+      
+      if (!category) {
+        // ID ile bulunamadıysa slug olarak dene
+        category = await this.prisma.category.findUnique({
+          where: { slug: categoryId },
+        });
+      }
+      
+      if (!category) {
+        throw new BadRequestException(`Kategori bulunamadı: ${categoryId}`);
+      }
+      
+      categoryId = category.id;
+    }
+
     const data: any = {
       ...createNewsDto,
+      categoryId,
       slug,
       authorId: userId,
       publishedAt: createNewsDto.publishedAt ? new Date(createNewsDto.publishedAt) : null,
@@ -180,6 +205,34 @@ export class NewsService {
     }
 
     const data: any = { ...updateNewsDto };
+    
+    // Eğer categoryId değiştirildiyse UUID formatında mı kontrol et, değilse ID veya slug olarak ara
+    if (updateNewsDto.categoryId) {
+      let categoryId = updateNewsDto.categoryId;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      
+      if (!uuidRegex.test(categoryId)) {
+        // Önce ID olarak dene (örn: cat-finans), sonra slug olarak dene (örn: finans)
+        let category = await this.prisma.category.findUnique({
+          where: { id: categoryId },
+        });
+        
+        if (!category) {
+          // ID ile bulunamadıysa slug olarak dene
+          category = await this.prisma.category.findUnique({
+            where: { slug: categoryId },
+          });
+        }
+        
+        if (!category) {
+          throw new BadRequestException(`Kategori bulunamadı: ${categoryId}`);
+        }
+        
+        categoryId = category.id;
+      }
+      
+      data.categoryId = categoryId;
+    }
     
     // Eğer başlık değiştiyse slug'ı güncelle
     if (updateNewsDto.title && updateNewsDto.title !== news.title) {

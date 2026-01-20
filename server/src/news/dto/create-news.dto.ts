@@ -14,9 +14,9 @@ export class CreateNewsDto {
   @IsNotEmpty({ message: 'İçerik gereklidir' })
   content: string;
 
-  @IsUUID(4, { message: 'Geçerli bir kategori seçiniz' })
+  @IsString({ message: 'Geçerli bir kategori seçiniz' })
   @IsNotEmpty({ message: 'Kategori seçilmelidir' })
-  categoryId: string;
+  categoryId: string; // UUID veya slug kabul eder
 
   @IsEnum(NewsStatus, { message: 'Geçerli bir durum seçiniz' })
   @IsOptional()

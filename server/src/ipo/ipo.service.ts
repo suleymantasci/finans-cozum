@@ -387,6 +387,7 @@ export class IpoService {
         companyName: true,
         detailUrl: true,
         status: true,
+        logoUrl: true,
       },
     });
   }
@@ -407,6 +408,7 @@ export class IpoService {
         companyName: true,
         detailUrl: true,
         status: true,
+        logoUrl: true,
       },
     });
   }
