@@ -13,9 +13,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed:tools": "ts-node src/scripts/seed-tools.ts",
-    "script:migrate-ipo-results": "ts-node src/scripts/migrate-ipo-results.ts",
-    "script:update-circulation-fields": "ts-node src/scripts/update-ipo-circulation-fields.ts"
+    "seed:tools": "ts-node src/scripts/seed-tools.ts"
   },
   "keywords": [],
   "author": "",

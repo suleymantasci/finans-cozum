@@ -1,11 +1,18 @@
 const isServer = typeof window === 'undefined';
 // Client-side: Use configured URL or default to specific port
-// Server-side: If relative path configured (for proxy), fallback to direct backend URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-  ? (isServer && process.env.NEXT_PUBLIC_API_URL.startsWith('/') 
-      ? (process.env.SERVER_API_URL || 'http://localhost:3001') 
-      : process.env.NEXT_PUBLIC_API_URL)
-  : 'http://localhost:3001';
+// Server-side: Use SERVER_API_URL if defined, otherwise use NEXT_PUBLIC_API_URL or fallback
+const API_BASE_URL = (() => {
+  if (isServer && process.env.SERVER_API_URL) {
+    return process.env.SERVER_API_URL;
+  }
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    if (isServer && process.env.NEXT_PUBLIC_API_URL.startsWith('/')) {
+      return process.env.SERVER_API_URL || 'http://localhost:3001';
+    }
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  return 'http://localhost:3001';
+})();
 
 export class ApiError extends Error {
   constructor(
@@ -22,7 +29,20 @@ async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // API_BASE_URL kontrolü - eğer boşsa fallback kullan
+  const baseUrl = API_BASE_URL || (typeof window !== 'undefined' 
+    ? 'https://finanscozum.net/api' 
+    : 'http://localhost:3001');
+  
+  // URL birleştirme: baseUrl'in sonunda / varsa ve endpoint / ile başlıyorsa, birini kaldır
+  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  const endpointPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${cleanBaseUrl}${endpointPath}`;
+  
+  // Debug (sadece development'ta)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('API Request:', { baseUrl, cleanBaseUrl, endpoint, url, API_BASE_URL });
+  }
   
   const config: RequestInit = {
     headers: {
